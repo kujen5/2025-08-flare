@@ -22,7 +22,7 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
 
 
 //slither-disable reentrancy    // all possible reentrancies guarded by nonReentrant
-contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, IERC165 {
+ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, IERC165 {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SafePct for uint256;
@@ -33,7 +33,7 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
         uint256 mul;
         uint256 div;
     }
-
+    // e NAT= flare's native token
     uint256 public constant MIN_NAT_TO_ENTER = 1 ether;
     uint256 public constant MIN_TOKEN_SUPPLY_AFTER_EXIT = 1 ether;
     uint256 public constant MIN_NAT_BALANCE_AFTER_EXIT = 1 ether;
@@ -58,6 +58,7 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
     uint256 public totalCollateral;
 
     modifier onlyAssetManager {
+        // e controls collateral pool tokens
         require(msg.sender == address(assetManager), OnlyAssetManager());
         _;
     }
@@ -77,7 +78,7 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
     ) {
         initialize(_agentVault, _assetManager, _fAsset, _exitCollateralRatioBIPS);
     }
-
+    // q double check initialization
     function initialize(
         address _agentVault,
         address _assetManager,
@@ -98,18 +99,24 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
         initializeReentrancyGuard();
     }
 
+    // ok 1st
+    // q we can only receive from inside of the contract? through which function?
     receive() external payable {
         require(internalWithdrawal, OnlyInternalUse());
     }
 
+    // ok 1st
     function setPoolToken(address _poolToken)
         external
         onlyAssetManager
     {
+        // e has to be 0 address cuz we're setting it for first time
+        // e if it already exists revert
         require(address(token) == address(0), PoolTokenAlreadySet());
         token = IICollateralPoolToken(_poolToken);
     }
 
+    // ok 1st
     /**
      * @notice Returns the collateral pool token contract used by this contract
      */
@@ -133,15 +140,21 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
         nonReentrant
         returns (uint256, uint256)
     {
+        // e msg.value is the NAT amount
         require(msg.value >= MIN_NAT_TO_ENTER, AmountOfNatTooLow());
         uint256 totalPoolTokens = token.totalSupply();
+        // e if its the first time entering OR when the pool is drained
         if (totalPoolTokens == 0) {
             // this conditions are set for keeping a stable token value
+            // q totalCollateral is not incrementing upon deposit?
             require(msg.value >= totalCollateral, AmountOfCollateralTooLow());
+            // e price of NAT => conversion rate ( should be 1:1 cuz its a stablecoin)
             AssetPrice memory assetPrice = _getAssetPrice();
+            // e this condition is for when the pool is drained yet there are fees to be paid
             require(msg.value >= totalFAssetFees.mulDiv(assetPrice.mul, assetPrice.div), AmountOfCollateralTooLow());
         }
         // calculate obtained pool tokens and free f-assets
+        // q there was no reason to do this, cuz it will always be 1:1
         uint256 tokenShare = _collateralToTokenShare(msg.value);
         require(tokenShare > 0, DepositResultsInZeroTokens());
         // calculate and create fee debt
@@ -886,6 +899,7 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
 
     ////////////////////////////////////////////////////////////////////////////////////
     // The rest
+
 
     function isAgentVaultOwner(address _address)
         internal view
