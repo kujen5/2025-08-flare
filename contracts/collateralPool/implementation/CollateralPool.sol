@@ -189,6 +189,7 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
      */
     // slither-disable-next-line reentrancy-eth         // guarded by nonReentrant
     function exit(uint256 _tokenShare)
+    // e withdraw collateral to myself
         external
         nonReentrant
         returns (uint256)
@@ -204,6 +205,8 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
      */
     // slither-disable-next-line reentrancy-eth         // guarded by nonReentrant
     function exitTo(uint256 _tokenShare, address payable _recipient)
+    // e withdraw collateral to someone else
+    // q maybe we could witdraw to someone else and break some logic? (make them have to return more, spend more, break a comparison)
         external
         nonReentrant
         returns (uint256)
@@ -216,7 +219,9 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         private
         returns (uint256)
     {
+        // e you dont have any shares
         require(_tokenShare > 0, TokenShareIsZero());
+        // e you're trying to withdraw more than you own
         require(_tokenShare <= token.balanceOf(msg.sender), TokenBalanceTooLow());
         _requireMinTokenSupplyAfterExit(_tokenShare);
         // token.totalSupply() >= token.balanceOf(msg.sender) >= _tokenShare > 0
@@ -609,7 +614,7 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         uint256 minPoolCollateralRatioBIPS = assetManager.getAgentMinPoolCollateralRatioBIPS(agentVault);
         return Math.max(minPoolCollateralRatioBIPS, exitCollateralRatioBIPS);
     }
-
+    ///@notice you should either withdraw all of them of leave something above the min
     function _requireMinTokenSupplyAfterExit(
         uint256 _tokenShare
     )
