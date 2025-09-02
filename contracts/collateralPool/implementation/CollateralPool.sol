@@ -131,6 +131,7 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         exitCollateralRatioBIPS = _exitCollateralRatioBIPS.toUint32();
     }
 
+    // ok 1st
     /**
      * @notice Enters the collateral pool by depositing some NAT
      */
@@ -146,6 +147,7 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         // e if its the first time entering OR when the pool is drained
         if (totalPoolTokens == 0) {
             // this conditions are set for keeping a stable token value
+            // e this condition just means msg.value >=0
             // q totalCollateral is not incrementing upon deposit?
             require(msg.value >= totalCollateral, AmountOfCollateralTooLow());
             // e price of NAT => conversion rate ( should be 1:1 cuz its a stablecoin)
@@ -156,9 +158,20 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         // calculate obtained pool tokens and free f-assets
         // q there was no reason to do this, cuz it will always be 1:1
         uint256 tokenShare = _collateralToTokenShare(msg.value);
+        // e make sure you're not depositing 0 collateral
         require(tokenShare > 0, DepositResultsInZeroTokens());
         // calculate and create fee debt
+        // e no fees on first deposit
+        // e if not first deposit: (_totalVirtualFees * tokenShare) / totalPoolTokens
+        /* e
+        totalPoolTokens = 10,000
+        _totalVirtualFees() = 1,000 FLR
+        Alice deposits 1000 collateral and gets tokenShare = 1,000
+        feeDebt=100
+        She will only earn fees from the moment she joined onwards.
+        */
         uint256 feeDebt = totalPoolTokens > 0 ? _totalVirtualFees().mulDiv(tokenShare, totalPoolTokens) : 0;
+
         _createFAssetFeeDebt(msg.sender, feeDebt);
         // deposit collateral
         _depositWNat();
@@ -425,6 +438,8 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         emit CPPaidOut(_recipient, _amount, slashedTokens);
     }
 
+    // ok 1st
+    // e will always return 1:1 ratio
     function _collateralToTokenShare(
         uint256 _collateral
     )
@@ -554,6 +569,8 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         return token.totalSupply().mulDiv(freeFassets, _totalVirtualFees());
     }
 
+    // ok 1st
+    // e returns asset price (ratio)
     function _getAssetPrice()
         internal view
         returns (AssetPrice memory)
@@ -569,6 +586,8 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         internal view
         returns (uint256)
     {
+        // q why not uint256?
+        // q get back to this again
         int256 virtualFees = totalFAssetFees.toInt256() + totalFAssetFeeDebt;
         // Invariant: virtualFees >= 0 always (otherwise the following line will revert).
         // Proof: the places where `totalFAssetFees` and `totalFAssetFeeDebt` change are: `enter`,
@@ -631,10 +650,12 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         totalFAssetFees += _amount;
     }
 
+    // ok 1st
     function _createFAssetFeeDebt(address _account, uint256 _fAssets)
         internal
     {
         if (_fAssets == 0) return;
+
         int256 fAssets = _fAssets.toInt256();
         _fAssetFeeDebtOf[_account] += fAssets;
         totalFAssetFeeDebt += fAssets;
@@ -703,13 +724,16 @@ import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
         }
     }
 
+    // ok 1st
     function _depositWNat()
         internal
     {
         // msg.value is always > 0 in this contract
         if (msg.value > 0) {
             totalCollateral += msg.value;
+            // q check later
             wNat.deposit{value: msg.value}();
+            // e update collateral for that specific agent, AC for only assetManager
             assetManager.updateCollateral(agentVault, wNat);
         }
     }
