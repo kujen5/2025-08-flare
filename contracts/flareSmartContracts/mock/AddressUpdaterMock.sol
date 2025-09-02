@@ -5,14 +5,12 @@ pragma solidity ^0.8.27;
 
 import {Governed} from "../../governance/implementation/Governed.sol";
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
-import {IIAddressUpdater}
-    from "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdater.sol";
-import {IIAddressUpdatable}
-    from "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
-
+import {IIAddressUpdater} from
+    "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdater.sol";
+import {IIAddressUpdatable} from
+    "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
 
 contract AddressUpdaterMock is IIAddressUpdater, Governed {
-
     string internal constant ERR_ARRAY_LENGTHS = "array lengths do not match";
     string internal constant ERR_ADDRESS_ZERO = "address zero";
 
@@ -20,7 +18,8 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
     mapping(bytes32 => address) internal contractAddresses;
 
     constructor(IGovernanceSettings _governanceSettings, address _initialGovernance)
-        Governed(_governanceSettings, _initialGovernance) {}
+        Governed(_governanceSettings, _initialGovernance)
+    {}
 
     /**
      * @notice set/update contract names/addresses and then apply changes to other contracts
@@ -32,9 +31,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
         string[] memory _contractNames,
         address[] memory _contractAddresses,
         IIAddressUpdatable[] memory _contractsToUpdate
-    )
-        external onlyGovernance
-    {
+    ) external onlyGovernance {
         _addOrUpdateContractNamesAndAddresses(_contractNames, _contractAddresses);
         _updateContractAddresses(_contractsToUpdate);
     }
@@ -43,10 +40,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @notice Updates contract addresses on all contracts implementing IIAddressUpdatable interface
      * @param _contractsToUpdate            contracts to be updated
      */
-    function updateContractAddresses(IIAddressUpdatable[] memory _contractsToUpdate)
-        external
-        onlyImmediateGovernance
-    {
+    function updateContractAddresses(IIAddressUpdatable[] memory _contractsToUpdate) external onlyImmediateGovernance {
         _updateContractAddresses(_contractsToUpdate);
     }
 
@@ -55,11 +49,9 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @param _contractNames                contracts names
      * @param _contractAddresses            addresses of corresponding contracts names
      */
-    function addOrUpdateContractNamesAndAddresses(
-        string[] memory _contractNames,
-        address[] memory _contractAddresses
-    )
-        external onlyGovernance
+    function addOrUpdateContractNamesAndAddresses(string[] memory _contractNames, address[] memory _contractAddresses)
+        external
+        onlyGovernance
     {
         _addOrUpdateContractNamesAndAddresses(_contractNames, _contractAddresses);
     }
@@ -89,10 +81,12 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
     /**
      * @notice Returns all contract names and corresponding addresses
      */
-    function getContractNamesAndAddresses() external view override returns(
-        string[] memory _contractNames,
-        address[] memory _contractAddresses
-    ) {
+    function getContractNamesAndAddresses()
+        external
+        view
+        override
+        returns (string[] memory _contractNames, address[] memory _contractAddresses)
+    {
         _contractNames = contractNames;
         uint256 len = _contractNames.length;
         _contractAddresses = new address[](len);
@@ -106,7 +100,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @notice Returns contract address for the given name - might be address(0)
      * @param _name             name of the contract
      */
-    function getContractAddress(string calldata _name) external view override returns(address) {
+    function getContractAddress(string calldata _name) external view override returns (address) {
         return contractAddresses[_keccak256AbiEncode(_name)];
     }
 
@@ -114,7 +108,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @notice Returns contract address for the given name hash - might be address(0)
      * @param _nameHash         hash of the contract name (keccak256(abi.encode(name))
      */
-    function getContractAddressByHash(bytes32 _nameHash) external view override returns(address) {
+    function getContractAddressByHash(bytes32 _nameHash) external view override returns (address) {
         return contractAddresses[_nameHash];
     }
 
@@ -122,7 +116,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @notice Returns contract addresses for the given names - might be address(0)
      * @param _names            names of the contracts
      */
-    function getContractAddresses(string[] calldata _names) external view override returns(address[] memory) {
+    function getContractAddresses(string[] calldata _names) external view override returns (address[] memory) {
         address[] memory addresses = new address[](_names.length);
         for (uint256 i = 0; i < _names.length; i++) {
             addresses[i] = contractAddresses[_keccak256AbiEncode(_names[i])];
@@ -134,10 +128,11 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @notice Returns contract addresses for the given name hashes - might be address(0)
      * @param _nameHashes       hashes of the contract names (keccak256(abi.encode(name))
      */
-    function getContractAddressesByHash(
-        bytes32[] calldata _nameHashes
-    )
-        external view override returns(address[] memory)
+    function getContractAddressesByHash(bytes32[] calldata _nameHashes)
+        external
+        view
+        override
+        returns (address[] memory)
     {
         address[] memory addresses = new address[](_nameHashes.length);
         for (uint256 i = 0; i < _nameHashes.length; i++) {
@@ -151,10 +146,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
      * @param _contractNames                contracts names
      * @param _contractAddresses            addresses of corresponding contracts names
      */
-    function _addOrUpdateContractNamesAndAddresses(
-        string[] memory _contractNames,
-        address[] memory _contractAddresses
-    )
+    function _addOrUpdateContractNamesAndAddresses(string[] memory _contractNames, address[] memory _contractAddresses)
         internal
     {
         uint256 len = _contractNames.length;
@@ -194,7 +186,7 @@ contract AddressUpdaterMock is IIAddressUpdater, Governed {
     /**
      * @notice Returns hash from string value
      */
-    function _keccak256AbiEncode(string memory _value) internal pure returns(bytes32) {
+    function _keccak256AbiEncode(string memory _value) internal pure returns (bytes32) {
         return keccak256(abi.encode(_value));
     }
 }

@@ -6,24 +6,23 @@ import {Globals} from "../library/Globals.sol";
 import {AssetManagerState} from "../library/data/AssetManagerState.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 
-
 abstract contract AssetManagerBase {
     error OnlyAssetManagerController();
     error NotAttached();
     error NotWhitelisted();
     error EmergencyPauseActive();
 
-    modifier onlyAssetManagerController {
+    modifier onlyAssetManagerController() {
         _checkOnlyAssetManagerController();
         _;
     }
 
-    modifier onlyAttached {
+    modifier onlyAttached() {
         _checkOnlyAttached();
         _;
     }
 
-    modifier notEmergencyPaused {
+    modifier notEmergencyPaused() {
         _checkEmergencyPauseNotActive();
         _;
     }

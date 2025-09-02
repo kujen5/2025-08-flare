@@ -43,37 +43,19 @@ contract CollateralPoolTest is Test {
         agentVault = makeAddr("agentVault");
 
         fAssetImpl = new FAsset();
-        fAssetProxy = new FAssetProxy(
-            address(fAssetImpl),
-            "fBitcoin",
-            "fBTC",
-            "Bitcoin",
-            "BTC",
-            18
-        );
+        fAssetProxy = new FAssetProxy(address(fAssetImpl), "fBitcoin", "fBTC", "Bitcoin", "BTC", 18);
         fAsset = FAsset(address(fAssetProxy));
         fAsset.setAssetManager(address(assetManagerMock));
 
-        collateralPool = new CollateralPool(
-            agentVault,
-            address(assetManagerMock),
-            address(fAsset),
-            exitCR
-        );
+        collateralPool = new CollateralPool(agentVault, address(assetManagerMock), address(fAsset), exitCR);
 
-        collateralPoolToken = new CollateralPoolToken(
-            address(collateralPool),
-            "FAsset Collateral Pool Token BTC-AG1",
-            "FCPT-BTC-AG1"
-        );
+        collateralPoolToken =
+            new CollateralPoolToken(address(collateralPool), "FAsset Collateral Pool Token BTC-AG1", "FCPT-BTC-AG1");
 
         vm.prank(address(assetManagerMock));
         collateralPool.setPoolToken(address(collateralPoolToken));
 
-        handler = new CollateralPoolHandler(
-            collateralPool,
-            fAsset
-        );
+        handler = new CollateralPoolHandler(collateralPool, fAsset);
         accounts = handler.getAccounts();
 
         assetManagerMock.setCheckForValidAgentVaultAddress(false);
@@ -89,12 +71,7 @@ contract CollateralPoolTest is Test {
         selectors.push(handler.depositNat.selector);
         selectors.push(handler.payout.selector);
         selectors.push(handler.fAssetFeeDeposited.selector);
-        targetSelector(
-            FuzzSelector({
-                addr: address(handler),
-                selectors: selectors
-            })
-        );
+        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
     }
 
     function invariant_1() public view {
@@ -105,7 +82,9 @@ contract CollateralPoolTest is Test {
             address account = accounts[i];
             sumFAssetFeeDebt += collateralPool.fAssetFeeDebtOf(account);
         }
-        assertEq(totalFAssetFeeDebt, sumFAssetFeeDebt,
+        assertEq(
+            totalFAssetFeeDebt,
+            sumFAssetFeeDebt,
             "Invariant 1 failed: totalFAssetFeeDebt does not match sum of fAssetFeeDebtOf"
         );
     }
@@ -115,7 +94,9 @@ contract CollateralPoolTest is Test {
         uint256 totalFAssetFees = collateralPool.totalFAssetFees();
         int256 totalFAssetFeeDebt = collateralPool.totalFAssetFeeDebt();
         require(totalFAssetFees <= uint256(type(int256).max), "totalFAssetFees too large");
-        assertGe(int256(totalFAssetFees) + totalFAssetFeeDebt, 0,
+        assertGe(
+            int256(totalFAssetFees) + totalFAssetFeeDebt,
+            0,
             "Invariant 2 failed: totalFAssetFees + totalFAssetFeeDebt is negative"
         );
     }
@@ -150,8 +131,11 @@ contract CollateralPoolTest is Test {
         for (uint256 i = 0; i < accounts.length; i++) {
             address account = accounts[i];
             int256 fAssetFeesOf = _fAssetFeesOf(account);
-            assertLe(MathUtils.positivePart(fAssetFeesOf), totalFAssetFees + 100,
-                "_fAssetFeesOf should not exceed totalFAssetFees");
+            assertLe(
+                MathUtils.positivePart(fAssetFeesOf),
+                totalFAssetFees + 100,
+                "_fAssetFeesOf should not exceed totalFAssetFees"
+            );
         }
     }
 
@@ -163,11 +147,9 @@ contract CollateralPoolTest is Test {
             address account = accounts[i];
             sumFAssetFees += collateralPool.fAssetFeesOf(account);
         }
-        uint256 absDiff = totalFAssetFees > sumFAssetFees ?
-            totalFAssetFees - sumFAssetFees : sumFAssetFees - totalFAssetFees;
-        assertLe(absDiff, 4 * accounts.length,
-            "Invariant 4 failed: totalFAssetFees does not match sum of fAssetFeesOf"
-        );
+        uint256 absDiff =
+            totalFAssetFees > sumFAssetFees ? totalFAssetFees - sumFAssetFees : sumFAssetFees - totalFAssetFees;
+        assertLe(absDiff, 4 * accounts.length, "Invariant 4 failed: totalFAssetFees does not match sum of fAssetFeesOf");
     }
 
     function invariant_4_1() public view {
@@ -179,10 +161,10 @@ contract CollateralPoolTest is Test {
             address account = accounts[i];
             sumFAssetFees += _fAssetFeesOf(account);
         }
-        int256 absDiff = totalFAssetFees > sumFAssetFees ?
-            totalFAssetFees - sumFAssetFees : sumFAssetFees - totalFAssetFees;
-        assertLe(absDiff, int256(accounts.length),
-            "Invariant 4 failed: totalFAssetFees does not match sum of _fAssetFeesOf"
+        int256 absDiff =
+            totalFAssetFees > sumFAssetFees ? totalFAssetFees - sumFAssetFees : sumFAssetFees - totalFAssetFees;
+        assertLe(
+            absDiff, int256(accounts.length), "Invariant 4 failed: totalFAssetFees does not match sum of _fAssetFeesOf"
         );
     }
 
@@ -212,7 +194,9 @@ contract CollateralPoolTest is Test {
         // totalFAssetFees >= fasset.balanceOf(collateralPool)
         uint256 totalFAssetFees = collateralPool.totalFAssetFees();
         uint256 fAssetBalance = fAsset.balanceOf(address(collateralPool));
-        assertGe(totalFAssetFees, fAssetBalance,
+        assertGe(
+            totalFAssetFees,
+            fAssetBalance,
             "Invariant 6 failed: totalFAssetFees is less than fasset balance in collateralPool"
         );
     }
@@ -221,11 +205,12 @@ contract CollateralPoolTest is Test {
         // totalCollateral >= wNat.balanceOf(collateralPool)
         uint256 totalCollateral = collateralPool.totalCollateral();
         uint256 wNatBalance = wNat.balanceOf(address(collateralPool));
-        assertGe(totalCollateral, wNatBalance,
+        assertGe(
+            totalCollateral,
+            wNatBalance,
             "Invariant 7 failed: totalCollateral is less than wNat balance of collateralPool"
         );
     }
-
 
     // ---- Helper functions ----
     function _fAssetFeesOf(address _account) internal view returns (int256) {
@@ -235,42 +220,24 @@ contract CollateralPoolTest is Test {
         return userFees;
     }
 
-    function _virtualFAssetFeesOf(
-        address _account
-    )
-        internal view
-        returns (uint256)
-    {
+    function _virtualFAssetFeesOf(address _account) internal view returns (uint256) {
         uint256 tokens = collateralPoolToken.balanceOf(_account);
         return _tokensToVirtualFeeShare(tokens);
     }
 
-    function _tokensToVirtualFeeShare(
-        uint256 _tokens
-    )
-        internal view
-        returns (uint256)
-    {
+    function _tokensToVirtualFeeShare(uint256 _tokens) internal view returns (uint256) {
         if (_tokens == 0) return 0;
         uint256 totalPoolTokens = collateralPoolToken.totalSupply();
         assert(_tokens <= totalPoolTokens);
         return _totalVirtualFees().mulDiv(_tokens, totalPoolTokens);
     }
 
-    function _totalVirtualFees()
-        internal view
-        returns (uint256)
-    {
+    function _totalVirtualFees() internal view returns (uint256) {
         int256 virtualFees = collateralPool.totalFAssetFees().toInt256() + collateralPool.totalFAssetFeeDebt();
         return virtualFees.toUint256();
     }
 
-    function _debtFreeTokensOf(
-        address _account
-    )
-        internal view
-        returns (int256)
-    {
+    function _debtFreeTokensOf(address _account) internal view returns (int256) {
         int256 accountFeeDebt = collateralPool.fAssetFeeDebtOf(_account);
         if (accountFeeDebt <= 0) {
             // with no debt, all tokens are free
@@ -293,5 +260,4 @@ contract CollateralPoolTest is Test {
         uint256 result = x.mulDiv(absY, z); // use the uint256 version
         return negative ? -int256(result) : int256(result);
     }
-
 }

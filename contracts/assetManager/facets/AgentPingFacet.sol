@@ -5,7 +5,6 @@ import {IAgentPing} from "../../userInterfaces/IAgentPing.sol";
 import {AssetManagerBase} from "./AssetManagerBase.sol";
 import {Agent} from "../../assetManager/library/data/Agent.sol";
 
-
 contract AgentPingFacet is AssetManagerBase, IAgentPing {
     /**
      * @inheritdoc IAgentPing

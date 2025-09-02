@@ -8,21 +8,22 @@ import {RedemptionTicketInfo} from "../../userInterfaces/data/RedemptionTicketIn
 import {RedemptionQueue} from "./data/RedemptionQueue.sol";
 import {Agent} from "./data/Agent.sol";
 
-
 library RedemptionQueueInfo {
     using SafeCast for uint256;
 
     error InvalidTicketId();
 
     function redemptionQueue(uint256 _firstRedemptionTicketId, uint256 _pageSize)
-        internal view
+        internal
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId)
     {
         return _getRedemptionQueue(address(0), _firstRedemptionTicketId, _pageSize);
     }
 
     function agentRedemptionQueue(address _agentVault, uint256 _firstRedemptionTicketId, uint256 _pageSize)
-        internal view
+        internal
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId)
     {
         // check that _agentVault address is valid
@@ -31,7 +32,8 @@ library RedemptionQueueInfo {
     }
 
     function _getRedemptionQueue(address _agentVault, uint256 _firstRedemptionTicketId, uint256 _pageSize)
-        private view
+        private
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
@@ -41,7 +43,7 @@ library RedemptionQueueInfo {
             // start from beginning
             ticketId = _agentVault == address(0) ? queue.firstTicketId : queue.agents[_agentVault].firstTicketId;
         }
-        require (ticketId == 0 || queue.tickets[ticketId].agentVault != address(0), InvalidTicketId());
+        require(ticketId == 0 || queue.tickets[ticketId].agentVault != address(0), InvalidTicketId());
         RedemptionTicketInfo.Data[] memory result = new RedemptionTicketInfo.Data[](_pageSize);
         uint256 count = 0;
         while (ticketId != 0 && count < _pageSize) {

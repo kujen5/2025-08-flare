@@ -8,15 +8,11 @@ import {IAgentOwnerRegistry} from "../../userInterfaces/IAgentOwnerRegistry.sol"
 import {AssetManagerState} from "./data/AssetManagerState.sol";
 import {CollateralTypeInt} from "./data/CollateralTypeInt.sol";
 
-
 // global state helpers
 library Globals {
     bytes32 internal constant ASSET_MANAGER_SETTINGS_POSITION = keccak256("fasset.AssetManager.Settings");
 
-    function getSettings()
-        internal pure
-        returns (AssetManagerSettings.Data storage _settings)
-    {
+    function getSettings() internal pure returns (AssetManagerSettings.Data storage _settings) {
         bytes32 position = ASSET_MANAGER_SETTINGS_POSITION;
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -24,42 +20,27 @@ library Globals {
         }
     }
 
-    function getWNat()
-        internal view
-        returns (IWNat)
-    {
+    function getWNat() internal view returns (IWNat) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return IWNat(address(state.collateralTokens[state.poolCollateralIndex].token));
     }
 
-    function getPoolCollateral()
-        internal view
-        returns (CollateralTypeInt.Data storage)
-    {
+    function getPoolCollateral() internal view returns (CollateralTypeInt.Data storage) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.collateralTokens[state.poolCollateralIndex];
     }
 
-    function getFAsset()
-        internal view
-        returns (IIFAsset)
-    {
+    function getFAsset() internal view returns (IIFAsset) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return IIFAsset(settings.fAsset);
     }
 
-    function getAgentOwnerRegistry()
-        internal view
-        returns (IAgentOwnerRegistry)
-    {
+    function getAgentOwnerRegistry() internal view returns (IAgentOwnerRegistry) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return IAgentOwnerRegistry(settings.agentOwnerRegistry);
     }
 
-    function getBurnAddress()
-        internal view
-        returns (address payable)
-    {
+    function getBurnAddress() internal view returns (address payable) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return settings.burnAddress;
     }

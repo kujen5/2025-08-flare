@@ -16,7 +16,6 @@ import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol"
 import {IUpgradableProxy} from "../../utils/interfaces/IUpgradableProxy.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 
-
 contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISettingsManagement {
     using SafeCast for uint256;
     using SafePct for uint256;
@@ -39,7 +38,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
     error ConfirmationTimeTooBig();
 
     struct UpdaterState {
-        mapping (bytes4 => uint256) lastUpdate;
+        mapping(bytes4 => uint256) lastUpdate;
     }
 
     bytes32 internal constant UPDATES_STATE_POSITION = keccak256("fasset.AssetManager.UpdaterState");
@@ -49,10 +48,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         _;
     }
 
-    function updateSystemContracts(address _controller, IWNat _wNat)
-        external
-        onlyAssetManagerController
-    {
+    function updateSystemContracts(address _controller, IWNat _wNat) external onlyAssetManagerController {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // update assetManagerController
         if (settings.assetManagerController != _controller) {
@@ -70,11 +66,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         }
     }
 
-    function setAgentOwnerRegistry(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentOwnerRegistry(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -83,11 +75,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("agentOwnerRegistry", _value);
     }
 
-    function setAgentVaultFactory(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentVaultFactory(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -96,11 +84,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("agentVaultFactory", _value);
     }
 
-    function setCollateralPoolFactory(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCollateralPoolFactory(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -109,11 +93,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("collateralPoolFactory", _value);
     }
 
-    function setCollateralPoolTokenFactory(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCollateralPoolTokenFactory(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -122,11 +102,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("collateralPoolTokenFactory", _value);
     }
 
-    function setPriceReader(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setPriceReader(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -135,11 +111,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("priceReader", _value);
     }
 
-    function setFdcVerification(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setFdcVerification(address _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value != address(0), InvalidAddress());
@@ -148,11 +120,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit IAssetManagerEvents.ContractChanged("fdcVerification", _value);
     }
 
-    function setCleanerContract(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCleanerContract(address _value) external onlyAssetManagerController rateLimited {
         IIFAsset fAsset = Globals.getFAsset();
         // validate
         // update
@@ -160,11 +128,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit ContractChanged("cleanerContract", _value);
     }
 
-    function setCleanupBlockNumberManager(address _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCleanupBlockNumberManager(address _value) external onlyAssetManagerController rateLimited {
         IIFAsset fAsset = Globals.getFAsset();
         // validate
         // update
@@ -224,11 +188,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("paymentChallengeRewardBIPS", _rewardBIPS);
     }
 
-    function setMinUpdateRepeatTimeSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMinUpdateRepeatTimeSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -237,11 +197,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("minUpdateRepeatTimeSeconds", _value);
     }
 
-    function setLotSizeAmg(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setLotSizeAmg(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         // huge lot size increase is very dangerous, because it breaks redemption
@@ -249,18 +205,13 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         require(_value > 0, CannotBeZero());
         require(_value <= settings.lotSizeAMG * 10, LotSizeIncreaseTooBig());
         require(_value >= settings.lotSizeAMG / 10, LotSizeDecreaseTooBig());
-        require(settings.mintingCapAMG == 0 || settings.mintingCapAMG >= _value,
-            LotSizeBiggerThanMintingCap());
+        require(settings.mintingCapAMG == 0 || settings.mintingCapAMG >= _value, LotSizeBiggerThanMintingCap());
         // update
         settings.lotSizeAMG = _value.toUint64();
         emit SettingChanged("lotSizeAMG", _value);
     }
 
-    function setMaxTrustedPriceAgeSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMaxTrustedPriceAgeSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -271,11 +222,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("maxTrustedPriceAgeSeconds", _value);
     }
 
-    function setCollateralReservationFeeBips(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCollateralReservationFeeBips(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -287,11 +234,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("collateralReservationFeeBIPS", _value);
     }
 
-    function setRedemptionFeeBips(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setRedemptionFeeBips(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -310,22 +253,20 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
-        require(_value > SafePct.MAX_BIPS,
-            BipsValueTooLow());
-        require(_value <= uint256(settings.redemptionDefaultFactorVaultCollateralBIPS).mulBips(12000) + 1000,
-            FeeIncreaseTooBig());
-        require(_value >= uint256(settings.redemptionDefaultFactorVaultCollateralBIPS).mulBips(8333),
-            FeeDecreaseTooBig());
+        require(_value > SafePct.MAX_BIPS, BipsValueTooLow());
+        require(
+            _value <= uint256(settings.redemptionDefaultFactorVaultCollateralBIPS).mulBips(12000) + 1000,
+            FeeIncreaseTooBig()
+        );
+        require(
+            _value >= uint256(settings.redemptionDefaultFactorVaultCollateralBIPS).mulBips(8333), FeeDecreaseTooBig()
+        );
         // update
         settings.redemptionDefaultFactorVaultCollateralBIPS = _value.toUint32();
         emit SettingChanged("redemptionDefaultFactorVaultCollateralBIPS", _value);
     }
 
-    function setConfirmationByOthersAfterSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setConfirmationByOthersAfterSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value >= 2 hours, MustBeAtLeastTwoHours());
@@ -334,11 +275,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("confirmationByOthersAfterSeconds", _value);
     }
 
-    function setConfirmationByOthersRewardUSD5(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setConfirmationByOthersRewardUSD5(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -349,11 +286,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("confirmationByOthersRewardUSD5", _value);
     }
 
-    function setMaxRedeemedTickets(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMaxRedeemedTickets(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -364,11 +297,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("maxRedeemedTickets", _value);
     }
 
-    function setWithdrawalOrDestroyWaitMinSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setWithdrawalOrDestroyWaitMinSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         // making this _value small doesn't present huge danger, so we don't limit decrease
@@ -379,11 +308,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("withdrawalWaitMinSeconds", _value);
     }
 
-    function setAttestationWindowSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAttestationWindowSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value >= 1 days, WindowTooSmall());
@@ -392,11 +317,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("attestationWindowSeconds", _value);
     }
 
-    function setAverageBlockTimeMS(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAverageBlockTimeMS(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());
@@ -407,11 +328,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("averageBlockTimeMS", _value);
     }
 
-    function setMintingPoolHoldingsRequiredBIPS(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMintingPoolHoldingsRequiredBIPS(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value <= settings.mintingPoolHoldingsRequiredBIPS * 4 + SafePct.MAX_BIPS, ValueTooBig());
@@ -420,11 +337,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("mintingPoolHoldingsRequiredBIPS", _value);
     }
 
-    function setMintingCapAmg(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMintingCapAmg(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value == 0 || _value >= settings.lotSizeAMG, ValueTooSmall());
@@ -433,11 +346,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("mintingCapAMG", _value);
     }
 
-    function setTokenInvalidationTimeMinSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setTokenInvalidationTimeMinSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         // update
@@ -445,11 +354,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("tokenInvalidationTimeMinSeconds", _value);
     }
 
-    function setVaultCollateralBuyForFlareFactorBIPS(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setVaultCollateralBuyForFlareFactorBIPS(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value >= SafePct.MAX_BIPS, ValueTooSmall());
@@ -458,11 +363,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("vaultCollateralBuyForFlareFactorBIPS", _value);
     }
 
-    function setAgentExitAvailableTimelockSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentExitAvailableTimelockSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value <= settings.agentExitAvailableTimelockSeconds * 4 + 1 weeks, ValueTooBig());
@@ -471,11 +372,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("agentExitAvailableTimelockSeconds", _value);
     }
 
-    function setAgentFeeChangeTimelockSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentFeeChangeTimelockSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value <= settings.agentFeeChangeTimelockSeconds * 4 + 1 days, ValueTooBig());
@@ -484,11 +381,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("agentFeeChangeTimelockSeconds", _value);
     }
 
-    function setAgentMintingCRChangeTimelockSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentMintingCRChangeTimelockSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value <= settings.agentMintingCRChangeTimelockSeconds * 4 + 1 days, ValueTooBig());
@@ -497,11 +390,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("agentMintingCRChangeTimelockSeconds", _value);
     }
 
-    function setPoolExitCRChangeTimelockSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setPoolExitCRChangeTimelockSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value <= settings.poolExitCRChangeTimelockSeconds * 4 + 1 days, ValueTooBig());
@@ -510,11 +399,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("poolExitCRChangeTimelockSeconds", _value);
     }
 
-    function setAgentTimelockedOperationWindowSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setAgentTimelockedOperationWindowSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value >= 1 hours, ValueTooSmall());
@@ -523,11 +408,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("agentTimelockedOperationWindowSeconds", _value);
     }
 
-    function setCollateralPoolTokenTimelockSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setCollateralPoolTokenTimelockSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value >= 1 minutes, ValueTooSmall());
@@ -536,11 +417,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingChanged("collateralPoolTokenTimelockSeconds", _value);
     }
 
-    function setLiquidationStepSeconds(uint256 _stepSeconds)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setLiquidationStepSeconds(uint256 _stepSeconds) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_stepSeconds > 0, CannotBeZero());
@@ -554,11 +431,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
     function setLiquidationPaymentFactors(
         uint256[] memory _liquidationFactors,
         uint256[] memory _vaultCollateralFactors
-    )
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    ) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         SettingsValidators.validateLiquidationFactors(_liquidationFactors, _vaultCollateralFactors);
@@ -574,11 +447,7 @@ contract SettingsManagementFacet is AssetManagerBase, IAssetManagerEvents, IISet
         emit SettingArrayChanged("liquidationFactorVaultCollateralBIPS", _vaultCollateralFactors);
     }
 
-    function setMaxEmergencyPauseDurationSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-        rateLimited
-    {
+    function setMaxEmergencyPauseDurationSeconds(uint256 _value) external onlyAssetManagerController rateLimited {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // validate
         require(_value > 0, CannotBeZero());

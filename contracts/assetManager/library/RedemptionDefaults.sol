@@ -27,9 +27,7 @@ library RedemptionDefaults {
         Agent.State storage _agent,
         Redemption.Request storage _request,
         uint256 _redemptionRequestId
-    )
-        internal
-    {
+    ) internal {
         // should only be used for active redemptions (should be checked before)
         assert(_request.status == Redemption.Status.ACTIVE);
         if (!_request.transferToCoreVault) {
@@ -48,13 +46,20 @@ library RedemptionDefaults {
             AgentBacking.endRedeemingAssets(_agent, _request.valueAMG, _request.poolSelfClose);
             // underlying balance is not added to free balance yet, because we don't know if there was a late payment
             // it will be (or was already) updated in call to confirmRedemptionPayment
-            emit IAssetManagerEvents.RedemptionDefault(_agent.vaultAddress(), _request.redeemer, _redemptionRequestId,
-                _request.underlyingValueUBA, paidC1Wei, paidPoolWei);
+            emit IAssetManagerEvents.RedemptionDefault(
+                _agent.vaultAddress(),
+                _request.redeemer,
+                _redemptionRequestId,
+                _request.underlyingValueUBA,
+                paidC1Wei,
+                paidPoolWei
+            );
         } else {
             // default can be handled as ordinary default by bots, but nothing is paid out - instead
             // FAssets are re-minted (which can be detected in trackers by TransferToCoreVaultDefaulted event)
-            emit IAssetManagerEvents.RedemptionDefault(_agent.vaultAddress(), _request.redeemer, _redemptionRequestId,
-                _request.underlyingValueUBA, 0, 0);
+            emit IAssetManagerEvents.RedemptionDefault(
+                _agent.vaultAddress(), _request.redeemer, _redemptionRequestId, _request.underlyingValueUBA, 0, 0
+            );
             // core vault transfer default - re-create tickets
             CoreVaultClient.cancelTransferToCoreVault(_agent, _request, _redemptionRequestId);
         }
@@ -74,37 +79,37 @@ library RedemptionDefaults {
         Redemption.Request storage _request,
         uint256 _paidC1Wei,
         uint256 _paidPoolWei
-    )
-        private view
-        returns (uint256)
-    {
+    ) private view returns (uint256) {
         Collateral.CombinedData memory cd = AgentCollateral.combinedData(_agent);
         // check that there are enough agent pool tokens
-        uint256 poolTokenEquiv = _paidC1Wei
-            .mulDiv(cd.agentPoolTokens.amgToTokenWeiPrice, cd.agentCollateral.amgToTokenWeiPrice);
-        uint256 requiredPoolTokensForRemainder =
-            uint256(_agent.reservedAMG + _agent.mintedAMG + _agent.redeemingAMG - _request.valueAMG)
-                .mulDiv(cd.agentPoolTokens.amgToTokenWeiPrice, Conversion.AMG_TOKEN_WEI_PRICE_SCALE)
-                .mulBips(Globals.getSettings().mintingPoolHoldingsRequiredBIPS);
-        require(requiredPoolTokensForRemainder + poolTokenEquiv <= cd.agentPoolTokens.fullCollateral,
-            NotEnoughAgentPoolTokensToCoverFailedVaultPayment());
+        uint256 poolTokenEquiv =
+            _paidC1Wei.mulDiv(cd.agentPoolTokens.amgToTokenWeiPrice, cd.agentCollateral.amgToTokenWeiPrice);
+        uint256 requiredPoolTokensForRemainder = uint256(
+            _agent.reservedAMG + _agent.mintedAMG + _agent.redeemingAMG - _request.valueAMG
+        ).mulDiv(cd.agentPoolTokens.amgToTokenWeiPrice, Conversion.AMG_TOKEN_WEI_PRICE_SCALE).mulBips(
+            Globals.getSettings().mintingPoolHoldingsRequiredBIPS
+        );
+        require(
+            requiredPoolTokensForRemainder + poolTokenEquiv <= cd.agentPoolTokens.fullCollateral,
+            NotEnoughAgentPoolTokensToCoverFailedVaultPayment()
+        );
         // check that pool CR won't be lowered
-        uint256 poolWeiEquiv = _paidC1Wei
-            .mulDiv(cd.poolCollateral.amgToTokenWeiPrice, cd.agentCollateral.amgToTokenWeiPrice);
+        uint256 poolWeiEquiv =
+            _paidC1Wei.mulDiv(cd.poolCollateral.amgToTokenWeiPrice, cd.agentCollateral.amgToTokenWeiPrice);
         uint256 combinedPaidPoolWei = _paidPoolWei + poolWeiEquiv;
-        require(combinedPaidPoolWei <= cd.poolCollateral.maxRedemptionCollateral(_agent, _request.valueAMG),
-            NotEnoughPoolCollateralToCoverFailedVaultPayment());
+        require(
+            combinedPaidPoolWei <= cd.poolCollateral.maxRedemptionCollateral(_agent, _request.valueAMG),
+            NotEnoughPoolCollateralToCoverFailedVaultPayment()
+        );
         return combinedPaidPoolWei;
     }
 
     // payment calculation: pay redemptionDefaultFactorVaultCollateralBIPS (>= 1) from agent vault collateral
     // however, if there is not enough in agent's vault, pay from pool
     // assured: _vaultCollateralWei <= fullCollateralC1, _poolWei <= fullPoolCollateral
-    function _collateralAmountForRedemption(
-        Agent.State storage _agent,
-        Redemption.Request storage _request
-    )
-        private view
+    function _collateralAmountForRedemption(Agent.State storage _agent, Redemption.Request storage _request)
+        private
+        view
         returns (uint256 _vaultCollateralWei, uint256 _poolWei)
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -118,16 +123,18 @@ library RedemptionDefaults {
             // if there is not enough vault collateral, just reduce the payment
             _vaultCollateralWei = Math.min(_vaultCollateralWei, maxVaultCollateralWei);
         } else {
-            _vaultCollateralWei = Conversion.convertAmgToTokenWei(_request.valueAMG, cdAgent.amgToTokenWeiPrice)
-                .mulBips(settings.redemptionDefaultFactorVaultCollateralBIPS);
+            _vaultCollateralWei = Conversion.convertAmgToTokenWei(_request.valueAMG, cdAgent.amgToTokenWeiPrice).mulBips(
+                settings.redemptionDefaultFactorVaultCollateralBIPS
+            );
             _poolWei = 0;
             // if there is not enough collateral held by agent, pay from the pool
             if (_vaultCollateralWei > maxVaultCollateralWei) {
                 // calculate paid amount and max available amount from the pool
                 Collateral.Data memory cdPool = AgentCollateral.poolCollateralData(_agent);
                 uint256 maxPoolWei = cdPool.maxRedemptionCollateral(_agent, _request.valueAMG);
-                uint256 extraPoolAmg = uint256(_request.valueAMG)
-                    .mulDivRoundUp(_vaultCollateralWei - maxVaultCollateralWei, _vaultCollateralWei);
+                uint256 extraPoolAmg = uint256(_request.valueAMG).mulDivRoundUp(
+                    _vaultCollateralWei - maxVaultCollateralWei, _vaultCollateralWei
+                );
                 _vaultCollateralWei = maxVaultCollateralWei;
                 _poolWei = Conversion.convertAmgToTokenWei(extraPoolAmg, cdPool.amgToTokenWeiPrice);
                 // if there is not enough collateral in the pool, just reduce the payment - however this is not likely,

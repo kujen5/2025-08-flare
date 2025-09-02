@@ -4,7 +4,6 @@ pragma solidity ^0.8.27;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SafeMath64} from "../../../utils/library/SafeMath64.sol";
 
-
 library RedemptionTimeExtension {
     using SafeCast for uint256;
     using SafeMath64 for uint64;
@@ -16,7 +15,6 @@ library RedemptionTimeExtension {
     struct State {
         // settings
         uint64 redemptionPaymentExtensionSeconds;
-
         // per agent state
         mapping(address _agentVault => AgentTimeExtensionData) agents;
     }
@@ -26,10 +24,7 @@ library RedemptionTimeExtension {
      * Implements "leaky bucket" algorithm, popular in rate-limiters.
      * @param _agentVault the agent vault address being redeemed
      */
-    function extendTimeForRedemption(address _agentVault)
-        internal
-        returns (uint64)
-    {
+    function extendTimeForRedemption(address _agentVault) internal returns (uint64) {
         State storage state = getState();
         AgentTimeExtensionData storage agentData = state.agents[_agentVault];
         uint64 timestamp = block.timestamp.toUint64();
@@ -38,27 +33,19 @@ library RedemptionTimeExtension {
         return agentData.extendedTimestamp - timestamp;
     }
 
-    function setRedemptionPaymentExtensionSeconds(uint256 _value)
-        internal
-    {
+    function setRedemptionPaymentExtensionSeconds(uint256 _value) internal {
         State storage state = getState();
         state.redemptionPaymentExtensionSeconds = _value.toUint64();
     }
 
-    function redemptionPaymentExtensionSeconds()
-        internal view
-        returns (uint256)
-    {
+    function redemptionPaymentExtensionSeconds() internal view returns (uint256) {
         State storage state = getState();
         return state.redemptionPaymentExtensionSeconds;
     }
 
     bytes32 internal constant STATE_POSITION = keccak256("fasset.RedemptionTimeExtension.State");
 
-    function getState()
-        internal pure
-        returns (State storage _state)
-    {
+    function getState() internal pure returns (State storage _state) {
         bytes32 position = STATE_POSITION;
         // solhint-disable-next-line no-inline-assembly
         assembly {

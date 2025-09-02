@@ -5,7 +5,6 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 import {FtsoV2PriceStore} from "./FtsoV2PriceStore.sol";
 
-
 contract FtsoV2PriceStoreProxy is ERC1967Proxy {
     constructor(
         address _implementationAddress,
@@ -16,11 +15,19 @@ contract FtsoV2PriceStoreProxy is ERC1967Proxy {
         uint8 _votingEpochDurationSeconds,
         uint8 _ftsoProtocolId
     )
-        ERC1967Proxy(_implementationAddress,
-            abi.encodeCall(FtsoV2PriceStore.initialize, (
-                _governanceSettings, _initialGovernance, _addressUpdater,
-                _firstVotingRoundStartTs, _votingEpochDurationSeconds, _ftsoProtocolId))
+        ERC1967Proxy(
+            _implementationAddress,
+            abi.encodeCall(
+                FtsoV2PriceStore.initialize,
+                (
+                    _governanceSettings,
+                    _initialGovernance,
+                    _addressUpdater,
+                    _firstVotingRoundStartTs,
+                    _votingEpochDurationSeconds,
+                    _ftsoProtocolId
+                )
+            )
         )
-    {
-    }
+    {}
 }

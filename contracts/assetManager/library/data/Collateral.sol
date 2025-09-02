@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-
 library Collateral {
     enum Kind {
-        VAULT,   // vault collateral (tokens in in agent vault)
-        POOL,           // pool collateral (NAT)
-        AGENT_POOL      // agent's pool tokens (expressed in NAT) - only important for minting
+        VAULT, // vault collateral (tokens in in agent vault)
+        POOL, // pool collateral (NAT)
+        AGENT_POOL // agent's pool tokens (expressed in NAT) - only important for minting
+
     }
 
     struct Data {

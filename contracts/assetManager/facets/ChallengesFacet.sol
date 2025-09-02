@@ -24,7 +24,6 @@ import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettin
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 
-
 contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
     using SafeCast for uint256;
     using SafePct for uint256;
@@ -48,10 +47,7 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
      * @param _payment proof of a transaction from the agent's underlying address
      * @param _agentVault agent vault address
      */
-    function illegalPaymentChallenge(
-        IBalanceDecreasingTransaction.Proof calldata _payment,
-        address _agentVault
-    )
+    function illegalPaymentChallenge(IBalanceDecreasingTransaction.Proof calldata _payment, address _agentVault)
         external
         nonReentrant
     {
@@ -61,8 +57,9 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
         // verify transaction
         TransactionAttestation.verifyBalanceDecreasingTransaction(_payment);
         // check the payment originates from agent's address
-        require(_payment.data.responseBody.sourceAddressHash == agent.underlyingAddressHash,
-            ChallengeNotAgentsAddress());
+        require(
+            _payment.data.responseBody.sourceAddressHash == agent.underlyingAddressHash, ChallengeNotAgentsAddress()
+        );
         // check that proof of this tx wasn't used before - otherwise we could
         // trigger liquidation for already proved redemption payments
         require(!state.paymentConfirmations.transactionConfirmed(_payment), ChallengeTransactionAlreadyConfirmed());
@@ -105,31 +102,35 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
         IBalanceDecreasingTransaction.Proof calldata _payment1,
         IBalanceDecreasingTransaction.Proof calldata _payment2,
         address _agentVault
-    )
-        external
-        nonReentrant
-    {
+    ) external nonReentrant {
         Agent.State storage agent = Agent.get(_agentVault);
         _validateAgentStatus(agent);
         // verify transactions
         TransactionAttestation.verifyBalanceDecreasingTransaction(_payment1);
         TransactionAttestation.verifyBalanceDecreasingTransaction(_payment2);
         // check the payments are unique and originate from agent's address
-        require(_payment1.data.requestBody.transactionId != _payment2.data.requestBody.transactionId,
-            ChallengeSameTransactionRepeated());
-        require(_payment1.data.responseBody.sourceAddressHash == agent.underlyingAddressHash,
-            ChallengeNotAgentsAddress());
-        require(_payment2.data.responseBody.sourceAddressHash == agent.underlyingAddressHash,
-            ChallengeNotAgentsAddress());
+        require(
+            _payment1.data.requestBody.transactionId != _payment2.data.requestBody.transactionId,
+            ChallengeSameTransactionRepeated()
+        );
+        require(
+            _payment1.data.responseBody.sourceAddressHash == agent.underlyingAddressHash, ChallengeNotAgentsAddress()
+        );
+        require(
+            _payment2.data.responseBody.sourceAddressHash == agent.underlyingAddressHash, ChallengeNotAgentsAddress()
+        );
         // payment references must be equal
-        require(_payment1.data.responseBody.standardPaymentReference ==
-            _payment2.data.responseBody.standardPaymentReference, ChallengeNotDuplicate());
+        require(
+            _payment1.data.responseBody.standardPaymentReference == _payment2.data.responseBody.standardPaymentReference,
+            ChallengeNotDuplicate()
+        );
         // ! no need to check that transaction wasn't confirmed - this is always illegal
         // start liquidation and reward challengers
         _liquidateAndRewardChallenger(agent, msg.sender, agent.mintedAMG);
         // emit events
-        emit IAssetManagerEvents.DuplicatePaymentConfirmed(_agentVault, _payment1.data.requestBody.transactionId,
-            _payment2.data.requestBody.transactionId);
+        emit IAssetManagerEvents.DuplicatePaymentConfirmed(
+            _agentVault, _payment1.data.requestBody.transactionId, _payment2.data.requestBody.transactionId
+        );
     }
 
     /**
@@ -140,10 +141,7 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
      * @param _payments proofs of several distinct payments from the agent's underlying address
      * @param _agentVault agent vault address
      */
-    function freeBalanceNegativeChallenge(
-        IBalanceDecreasingTransaction.Proof[] calldata _payments,
-        address _agentVault
-    )
+    function freeBalanceNegativeChallenge(IBalanceDecreasingTransaction.Proof[] calldata _payments, address _agentVault)
         external
         nonReentrant
     {
@@ -157,13 +155,14 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
             TransactionAttestation.verifyBalanceDecreasingTransaction(pmi);
             // check there are no duplicate transactions
             for (uint256 j = 0; j < i; j++) {
-                require(_payments[j].data.requestBody.transactionId != pmi.data.requestBody.transactionId,
-                    ChallengeSameTransactionRepeated());
+                require(
+                    _payments[j].data.requestBody.transactionId != pmi.data.requestBody.transactionId,
+                    ChallengeSameTransactionRepeated()
+                );
             }
-            require(pmi.data.responseBody.sourceAddressHash == agent.underlyingAddressHash,
-                ChallengeNotAgentsAddress());
+            require(pmi.data.responseBody.sourceAddressHash == agent.underlyingAddressHash, ChallengeNotAgentsAddress());
             if (state.paymentConfirmations.transactionConfirmed(pmi)) {
-                continue;   // ignore payments that have already been confirmed
+                continue; // ignore payments that have already been confirmed
             }
             bytes32 paymentReference = pmi.data.responseBody.standardPaymentReference;
             if (PaymentReference.isValid(paymentReference, PaymentReference.REDEMPTION)) {
@@ -189,9 +188,7 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
         emit IAssetManagerEvents.UnderlyingBalanceTooLow(_agentVault, balanceAfterPayments, requiredBalance);
     }
 
-    function _validateAgentStatus(Agent.State storage _agent)
-        private view
-    {
+    function _validateAgentStatus(Agent.State storage _agent) private view {
         // If the agent is already being fully liquidated, no need for more challenges; this also prevents
         // double challenges.
         Agent.Status status = _agent.status;
@@ -205,15 +202,12 @@ contract ChallengesFacet is AssetManagerBase, ReentrancyGuard {
         Agent.State storage _agent,
         address _challenger,
         uint256 _backingAMGAtChallenge
-    )
-        private
-    {
+    ) private {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // start full liquidation
         Liquidation.startFullLiquidation(_agent);
         // calculate the reward
-        Collateral.Data memory collateralData =
-            AgentCollateral.agentVaultCollateralData(_agent);
+        Collateral.Data memory collateralData = AgentCollateral.agentVaultCollateralData(_agent);
         uint256 rewardAMG = _backingAMGAtChallenge.mulBips(settings.paymentChallengeRewardBIPS);
         uint256 rewardC1Wei = Conversion.convertAmgToTokenWei(rewardAMG, collateralData.amgToTokenWeiPrice)
             + Agents.convertUSD5ToVaultCollateralWei(_agent, settings.paymentChallengeRewardUSD5);

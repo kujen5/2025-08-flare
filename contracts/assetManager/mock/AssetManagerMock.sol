@@ -43,7 +43,7 @@ contract AssetManagerMock {
 
     function callFunctionAt(address _contract, bytes memory _payload) external {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = _contract.call(_payload);
+        (bool success,) = _contract.call(_payload);
         _passReturnOrRevert(success);
     }
 
@@ -51,17 +51,15 @@ contract AssetManagerMock {
         commonOwner = _owner;
     }
 
-    function getAgentVaultOwner(address /*_agentVault*/) external view
-        returns (address _ownerManagementAddress)
-    {
+    function getAgentVaultOwner(address /*_agentVault*/ ) external view returns (address _ownerManagementAddress) {
         return commonOwner;
     }
 
-    function isAgentVaultOwner(address /*_agentVault*/, address _address) external view returns (bool) {
+    function isAgentVaultOwner(address, /*_agentVault*/ address _address) external view returns (bool) {
         return _address == commonOwner;
     }
 
-    function isVaultCollateralToken(IERC20 /* _token */) external pure returns (bool) {
+    function isVaultCollateralToken(IERC20 /* _token */ ) external pure returns (bool) {
         return true;
     }
 
@@ -74,7 +72,7 @@ contract AssetManagerMock {
         checkForValidAgentVaultAddress = _check;
     }
 
-    function getCollateralPool(address /*_agentVault*/) external view returns (address) {
+    function getCollateralPool(address /*_agentVault*/ ) external view returns (address) {
         return collateralPool;
     }
 
@@ -86,16 +84,17 @@ contract AssetManagerMock {
     // Methods specific to collateral pool contract
 
     function redeemFromAgent(
-        address /* _agentVault */, address _redeemer, uint256 _amountUBA,
-        string memory _receiverUnderlyingAddress, address payable _executor
+        address, /* _agentVault */
+        address _redeemer,
+        uint256 _amountUBA,
+        string memory _receiverUnderlyingAddress,
+        address payable _executor
     ) external payable {
         fasset.burn(msg.sender, _amountUBA);
         emit AgentRedemption(_redeemer, _receiverUnderlyingAddress, _amountUBA, _executor);
     }
 
-    function redeemFromAgentInCollateral(
-        address /* _agentVault */, address _redeemer, uint256 _amountUBA
-    ) external {
+    function redeemFromAgentInCollateral(address, /* _agentVault */ address _redeemer, uint256 _amountUBA) external {
         fasset.burn(msg.sender, _amountUBA);
         emit AgentRedemptionInCollateral(_redeemer, _amountUBA);
     }
@@ -104,11 +103,11 @@ contract AssetManagerMock {
         fasset = _fasset;
     }
 
-    function getFAssetsBackedByPool(address /* _backer */) external view returns (uint256) {
+    function getFAssetsBackedByPool(address /* _backer */ ) external view returns (uint256) {
         return Math.min(fassetsBackedByPool, fasset.totalSupply());
     }
 
-    function maxRedemptionFromAgent(address /*agentVault*/) external view returns (uint256) {
+    function maxRedemptionFromAgent(address /*agentVault*/ ) external view returns (uint256) {
         return maxRedemption;
     }
 
@@ -120,21 +119,15 @@ contract AssetManagerMock {
         return (assetPriceMul, assetPriceDiv);
     }
 
-    function fAsset()
-        external view
-        returns (IIFAsset)
-    {
+    function fAsset() external view returns (IIFAsset) {
         return fasset;
     }
 
-    function transfersEmergencyPaused()
-        external pure
-        returns (bool)
-    {
+    function transfersEmergencyPaused() external pure returns (bool) {
         return false;
     }
 
-    function getAgentMinPoolCollateralRatioBIPS(address /* _agentVault */) external view returns (uint256) {
+    function getAgentMinPoolCollateralRatioBIPS(address /* _agentVault */ ) external view returns (uint256) {
         return minPoolCollateralRatioBIPS;
     }
 
@@ -166,7 +159,7 @@ contract AssetManagerMock {
         minPoolCollateralRatioBIPS = _minPoolCollateralRatioBIPS;
     }
 
-   function _passReturnOrRevert(bool _success) private pure {
+    function _passReturnOrRevert(bool _success) private pure {
         // pass exact return or revert data - needs to be done in assembly
         //solhint-disable-next-line no-inline-assembly
         assembly {
@@ -174,9 +167,7 @@ contract AssetManagerMock {
             let ptr := mload(0x40)
             mstore(0x40, add(ptr, size))
             returndatacopy(ptr, 0, size)
-            if _success {
-                return(ptr, size)
-            }
+            if _success { return(ptr, size) }
             revert(ptr, size)
         }
     }

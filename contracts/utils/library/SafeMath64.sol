@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-
 library SafeMath64 {
     uint256 internal constant MAX_UINT64 = type(uint64).max;
     int256 internal constant MAX_INT64 = type(int64).max;

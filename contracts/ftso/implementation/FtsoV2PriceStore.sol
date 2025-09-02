@@ -10,7 +10,6 @@ import {IPriceReader} from "../../ftso/interfaces/IPriceReader.sol";
 import {IPricePublisher} from "../interfaces/IPricePublisher.sol";
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 
-
 contract FtsoV2PriceStore is
     GovernedUUPSProxyImplementation,
     IPriceReader,
@@ -26,7 +25,6 @@ contract FtsoV2PriceStore is
         uint32 votingRoundId;
         uint32 value;
         int8 decimals;
-
         uint32 trustedVotingRoundId;
         uint32 trustedValue;
         int8 trustedDecimals;
@@ -71,7 +69,7 @@ contract FtsoV2PriceStore is
     /// Mapping from feed id to price store which holds the latest published FTSO scaling price and trusted price.
     mapping(bytes21 feedId => PriceStore) internal latestPrices;
     /// Mapping from feed id to submitted trusted prices for the given voting round.
-    mapping(bytes21 feedId => mapping (uint32 votingRoundId => bytes)) internal submittedTrustedPrices;
+    mapping(bytes21 feedId => mapping(uint32 votingRoundId => bytes)) internal submittedTrustedPrices;
     /// Mapping from trusted provider to the last submitted voting epoch id.
     mapping(address trustedProvider => uint256 lastVotingEpochId) internal lastVotingEpochIdByProvider;
 
@@ -91,7 +89,7 @@ contract FtsoV2PriceStore is
     event PricesPublished(uint32 indexed votingRoundId);
 
     constructor()
-        GovernedUUPSProxyImplementation()   // marks as initialized
+        GovernedUUPSProxyImplementation() // marks as initialized
         AddressUpdatable(address(0))
     {}
 
@@ -102,13 +100,11 @@ contract FtsoV2PriceStore is
         uint64 _firstVotingRoundStartTs,
         uint8 _votingEpochDurationSeconds,
         uint8 _ftsoProtocolId
-    )
-        external
-    {
+    ) external {
         require(_firstVotingRoundStartTs + _votingEpochDurationSeconds <= block.timestamp, InvalidStartTime());
         require(_votingEpochDurationSeconds > 1, VotingEpochDurationTooShort()); // 90 s
 
-        initialise(_governanceSettings, _initialGovernance);    // also marks as initialized
+        initialise(_governanceSettings, _initialGovernance); // also marks as initialized
         setAddressUpdaterValue(_addressUpdater);
         firstVotingRoundStartTs = _firstVotingRoundStartTs;
         votingEpochDurationSeconds = _votingEpochDurationSeconds;
@@ -129,8 +125,10 @@ contract FtsoV2PriceStore is
             if (i == 0) {
                 votingRoundId = feed.votingRoundId;
                 require(votingRoundId > lastPublishedVotingRoundId, PricesAlreadyPublished());
-                require(_getEndTimestamp(votingRoundId) + submitTrustedPricesWindowSeconds <= block.timestamp,
-                    SubmissionWindowNotClosed());
+                require(
+                    _getEndTimestamp(votingRoundId) + submitTrustedPricesWindowSeconds <= block.timestamp,
+                    SubmissionWindowNotClosed()
+                );
                 // update last published voting round id
                 lastPublishedVotingRoundId = votingRoundId;
                 // emit event
@@ -208,9 +206,7 @@ contract FtsoV2PriceStore is
         string[] calldata _symbols,
         int8[] calldata _trustedDecimals,
         uint16 _maxSpreadBIPS
-    )
-        external onlyGovernance
-    {
+    ) external onlyGovernance {
         require(_feedIds.length == _symbols.length && _feedIds.length == _trustedDecimals.length, LengthMismatch());
         require(_maxSpreadBIPS <= MAX_BIPS, MaxSpreadTooBig());
         maxSpreadBIPS = _maxSpreadBIPS;
@@ -238,13 +234,11 @@ contract FtsoV2PriceStore is
      * @param _trustedProvidersThreshold The trusted providers threshold for calculating the median price.
      * @dev Can only be called by the governance.
      */
-    function setTrustedProviders(
-        address[] calldata _trustedProviders,
-        uint8 _trustedProvidersThreshold
-    )
-        external onlyGovernance
+    function setTrustedProviders(address[] calldata _trustedProviders, uint8 _trustedProvidersThreshold)
+        external
+        onlyGovernance
     {
-        require(_trustedProviders.length < 2**8, TooManyTrustedProviders());
+        require(_trustedProviders.length < 2 ** 8, TooManyTrustedProviders());
         require(_trustedProviders.length >= _trustedProvidersThreshold, ThresholdTooHigh());
         trustedProvidersThreshold = _trustedProvidersThreshold;
         // reset all trusted providers
@@ -262,7 +256,8 @@ contract FtsoV2PriceStore is
      * @inheritdoc IPriceReader
      */
     function getPrice(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals)
     {
         bytes21 feedId = symbolToFeedId[_symbol];
@@ -283,7 +278,8 @@ contract FtsoV2PriceStore is
      * @inheritdoc IPriceReader
      */
     function getPriceFromTrustedProviders(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals)
     {
         bytes21 feedId = symbolToFeedId[_symbol];
@@ -296,7 +292,8 @@ contract FtsoV2PriceStore is
      * @inheritdoc IPriceReader
      */
     function getPriceFromTrustedProvidersWithQuality(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals, uint8 _numberOfSubmits)
     {
         bytes21 feedId = symbolToFeedId[_symbol];
@@ -351,11 +348,9 @@ contract FtsoV2PriceStore is
     /**
      * @notice virtual method that a contract extending AddressUpdatable must implement
      */
-    function _updateContractAddresses(
-        bytes32[] memory _contractNameHashes,
-        address[] memory _contractAddresses
-    )
-        internal override
+    function _updateContractAddresses(bytes32[] memory _contractNameHashes, address[] memory _contractAddresses)
+        internal
+        override
     {
         relay = IRelay(_getContractAddress(_contractNameHashes, _contractAddresses, "Relay"));
     }
@@ -363,14 +358,14 @@ contract FtsoV2PriceStore is
     /**
      * Returns the previous voting epoch id.
      */
-    function _getPreviousVotingEpochId() internal view returns(uint32) {
+    function _getPreviousVotingEpochId() internal view returns (uint32) {
         return uint32((block.timestamp - firstVotingRoundStartTs) / votingEpochDurationSeconds) - 1;
     }
 
     /**
      * Returns the end timestamp for the given voting epoch id.
      */
-    function _getEndTimestamp(uint256 _votingEpochId) internal view returns(uint256) {
+    function _getEndTimestamp(uint256 _votingEpochId) internal view returns (uint256) {
         return firstVotingRoundStartTs + (_votingEpochId + 1) * votingEpochDurationSeconds;
     }
 
@@ -378,7 +373,8 @@ contract FtsoV2PriceStore is
      * Returns price data from trusted providers.
      */
     function _getPriceFromTrustedProviders(PriceStore storage _feed)
-        internal view
+        internal
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals)
     {
         _price = _feed.trustedValue;
@@ -444,12 +440,8 @@ contract FtsoV2PriceStore is
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        external pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IPriceReader).interfaceId
+    function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IPriceReader).interfaceId
             || _interfaceId == type(IPricePublisher).interfaceId;
     }
 }

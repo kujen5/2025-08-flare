@@ -7,7 +7,6 @@ import {IICollateralPoolTokenFactory} from "../../collateralPool/interfaces/IICo
 import {CollateralPoolToken} from "./CollateralPoolToken.sol";
 import {IICollateralPool} from "../../collateralPool/interfaces/IICollateralPool.sol";
 
-
 contract CollateralPoolTokenFactory is IICollateralPoolTokenFactory, IERC165 {
     string internal constant TOKEN_NAME_PREFIX = "FAsset Collateral Pool Token ";
     string internal constant TOKEN_SYMBOL_PREFIX = "FCPT-";
@@ -19,7 +18,8 @@ contract CollateralPoolTokenFactory is IICollateralPoolTokenFactory, IERC165 {
     }
 
     function create(IICollateralPool _pool, string memory _systemSuffix, string memory _agentSuffix)
-        external override
+        external
+        override
         returns (address)
     {
         string memory tokenName = string.concat(TOKEN_NAME_PREFIX, _systemSuffix, "-", _agentSuffix);
@@ -33,7 +33,7 @@ contract CollateralPoolTokenFactory is IICollateralPoolTokenFactory, IERC165 {
     /**
      * Returns the encoded init call, to be used in ERC1967 upgradeToAndCall.
      */
-    function upgradeInitCall(address /* _proxy */) external pure override returns (bytes memory) {
+    function upgradeInitCall(address /* _proxy */ ) external pure override returns (bytes memory) {
         // This is the simplest upgrade implementation - no init method needed on upgrade.
         // Future versions of the factory might return a non-trivial call.
         return new bytes(0);
@@ -42,11 +42,8 @@ contract CollateralPoolTokenFactory is IICollateralPoolTokenFactory, IERC165 {
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        external pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IICollateralPoolTokenFactory).interfaceId;
+    function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
+        return
+            _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IICollateralPoolTokenFactory).interfaceId;
     }
 }

@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.6 <0.9;
 
-import {IConfirmedBlockHeightExists, IPayment, IAddressValidity, IReferencedPaymentNonexistence,
-        IBalanceDecreasingTransaction}
-    from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerification.sol";
+import {
+    IConfirmedBlockHeightExists,
+    IPayment,
+    IAddressValidity,
+    IReferencedPaymentNonexistence,
+    IBalanceDecreasingTransaction
+} from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerification.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IDiamondLoupe} from "../diamond/interfaces/IDiamondLoupe.sol";
 import {AssetManagerSettings} from "./data/AssetManagerSettings.sol";
@@ -21,7 +25,6 @@ import {ICoreVaultClient} from "./ICoreVaultClient.sol";
 import {ICoreVaultClientSettings} from "./ICoreVaultClientSettings.sol";
 import {IAgentAlwaysAllowedMinters} from "./IAgentAlwaysAllowedMinters.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 
 /**
  * Asset manager publicly callable methods.
@@ -43,46 +46,33 @@ interface IAssetManager is
      * Get the asset manager controller, the only address that can change settings.
      * Asset manager must be attached to the asset manager controller in the system contract registry.
      */
-    function assetManagerController()
-        external view
-        returns (address);
+    function assetManagerController() external view returns (address);
 
     /**
      * Get the f-asset contract managed by this asset manager instance.
      */
-    function fAsset()
-        external view
-        returns (IERC20);
+    function fAsset() external view returns (IERC20);
 
     /**
      * Get the price reader contract used by this asset manager instance.
      */
-    function priceReader()
-        external view
-        returns (address);
+    function priceReader() external view returns (address);
 
     /**
      * Return lot size in UBA (underlying base amount - smallest amount on underlying chain, e.g. satoshi).
      */
-    function lotSize()
-        external view
-        returns (uint256 _lotSizeUBA);
+    function lotSize() external view returns (uint256 _lotSizeUBA);
 
     /**
      * Return asset minting granularity - smallest unit of f-asset stored internally
      * within this asset manager instance.
      */
-    function assetMintingGranularityUBA()
-        external view
-        returns (uint256);
+    function assetMintingGranularityUBA() external view returns (uint256);
 
     /**
      * Return asset minting decimals - the number of decimals of precision for minting.
-
      */
-    function assetMintingDecimals()
-        external view
-        returns (uint256);
+    function assetMintingDecimals() external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // System settings
@@ -91,17 +81,13 @@ interface IAssetManager is
      * Get complete current settings.
      * @return the current settings
      */
-    function getSettings()
-        external view
-        returns (AssetManagerSettings.Data memory);
+    function getSettings() external view returns (AssetManagerSettings.Data memory);
 
     /**
      * When `controllerAttached` is true, asset manager has been added to the asset manager controller.
      * This is required for the asset manager to be operational (create agent and minting don't work otherwise).
      */
-    function controllerAttached()
-        external view
-        returns (bool);
+    function controllerAttached() external view returns (bool);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Emergency pause
@@ -109,16 +95,12 @@ interface IAssetManager is
     /**
      * If true, the system is in emergency pause mode and most operations (mint, redeem, liquidate) are disabled.
      */
-    function emergencyPaused()
-        external view
-        returns (bool);
+    function emergencyPaused() external view returns (bool);
 
     /**
      * The time when emergency pause mode will end automatically.
      */
-    function emergencyPausedUntil()
-        external view
-        returns (uint256);
+    function emergencyPausedUntil() external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Emergency pause transfers
@@ -126,16 +108,12 @@ interface IAssetManager is
     /**
      * If true, the system is in emergency pause mode and most operations (mint, redeem, liquidate) are disabled.
      */
-    function transfersEmergencyPaused()
-        external view
-        returns (bool);
+    function transfersEmergencyPaused() external view returns (bool);
 
     /**
      * The time when emergency pause mode will end automatically.
      */
-    function transfersEmergencyPausedUntil()
-        external view
-        returns (uint256);
+    function transfersEmergencyPausedUntil() external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Asset manager upgrading state
@@ -145,9 +123,7 @@ interface IAssetManager is
      * In the paused state, minting is disabled, but all other operations (e.g. redemptions, liquidation) still work.
      * Paused asset manager can be later unpaused.
      */
-    function mintingPaused()
-        external view
-        returns (bool);
+    function mintingPaused() external view returns (bool);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Timekeeping for underlying chain
@@ -161,9 +137,7 @@ interface IAssetManager is
      * NOTE: anybody can call.
      * @param _proof proof that a block with given number and timestamp exists
      */
-    function updateCurrentBlock(
-        IConfirmedBlockHeightExists.Proof calldata _proof
-    ) external;
+    function updateCurrentBlock(IConfirmedBlockHeightExists.Proof calldata _proof) external;
 
     /**
      * Get block number and timestamp of the current underlying block known to the f-asset system.
@@ -172,7 +146,8 @@ interface IAssetManager is
      * @return _lastUpdateTs the timestamp on this chain when the current underlying block was last updated
      */
     function currentUnderlyingBlock()
-        external view
+        external
+        view
         returns (uint256 _blockNumber, uint256 _blockTimestamp, uint256 _lastUpdateTs);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -182,15 +157,14 @@ interface IAssetManager is
      * Get collateral  information about a token.
      */
     function getCollateralType(CollateralType.Class _collateralClass, IERC20 _token)
-        external view
+        external
+        view
         returns (CollateralType.Data memory);
 
     /**
      * Get the list of all available and deprecated tokens used for collateral.
      */
-    function getCollateralTypes()
-        external view
-        returns (CollateralType.Data[] memory);
+    function getCollateralTypes() external view returns (CollateralType.Data[] memory);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Agent create / destroy
@@ -204,10 +178,8 @@ interface IAssetManager is
      * Can be called from the management or the work agent owner address.
      * @return _agentVault new agent vault address
      */
-    function createAgentVault(
-        IAddressValidity.Proof calldata _addressProof,
-        AgentSettings.Data calldata _settings
-    ) external
+    function createAgentVault(IAddressValidity.Proof calldata _addressProof, AgentSettings.Data calldata _settings)
+        external
         returns (address _agentVault);
 
     /**
@@ -216,10 +188,7 @@ interface IAssetManager is
      * NOTE: may only be called by the agent vault owner.
      * @return _destroyAllowedAt the timestamp at which the destroy can be executed
      */
-    function announceDestroyAgent(
-        address _agentVault
-    ) external
-        returns (uint256 _destroyAllowedAt);
+    function announceDestroyAgent(address _agentVault) external returns (uint256 _destroyAllowedAt);
 
     /**
      * Delete all agent data, self destruct agent vault and send remaining collateral to the `_recipient`.
@@ -233,10 +202,7 @@ interface IAssetManager is
      * @param _agentVault address of the agent's vault to destroy
      * @param _recipient address that receives the remaining funds and possible vault balance
      */
-    function destroyAgent(
-        address _agentVault,
-        address payable _recipient
-    ) external;
+    function destroyAgent(address _agentVault, address payable _recipient) external;
 
     /**
      * When agent vault, collateral pool or collateral pool token factory is upgraded, new agent vaults
@@ -246,18 +212,13 @@ interface IAssetManager is
      * @param _agentVault address of the agent's vault; both vault, its corresponding pool, and
      *  its pool token will be upgraded to the newest implementations
      */
-    function upgradeAgentVaultAndPool(
-        address _agentVault
-    ) external;
+    function upgradeAgentVaultAndPool(address _agentVault) external;
 
     /**
      * Check if the collateral pool token has been used already by some vault.
      * @param _suffix the suffix to check
      */
-    function isPoolTokenSuffixReserved(
-        string memory _suffix
-    ) external view
-        returns (bool);
+    function isPoolTokenSuffixReserved(string memory _suffix) external view returns (bool);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Agent settings update
@@ -270,11 +231,8 @@ interface IAssetManager is
      * @param _name setting name, same as for `getAgentSetting`
      * @return _updateAllowedAt the timestamp at which the update can be executed
      */
-    function announceAgentSettingUpdate(
-        address _agentVault,
-        string memory _name,
-        uint256 _value
-    ) external
+    function announceAgentSettingUpdate(address _agentVault, string memory _name, uint256 _value)
+        external
         returns (uint256 _updateAllowedAt);
 
     /**
@@ -284,20 +242,14 @@ interface IAssetManager is
      * @param _agentVault agent vault address
      * @param _name setting name, same as for `getAgentSetting`
      */
-    function executeAgentSettingUpdate(
-        address _agentVault,
-        string memory _name
-    ) external;
+    function executeAgentSettingUpdate(address _agentVault, string memory _name) external;
 
     /**
      * If the current agent's vault collateral token gets deprecated, the agent must switch with this method.
      * NOTE: may only be called by the agent vault owner.
      * NOTE: at the time of switch, the agent must have enough of both collaterals in the vault.
      */
-    function switchVaultCollateral(
-        address _agentVault,
-        IERC20 _token
-    ) external;
+    function switchVaultCollateral(address _agentVault, IERC20 _token) external;
 
     /**
      * When current pool collateral token contract (WNat) is replaced by the method setPoolWNatCollateralType,
@@ -305,9 +257,7 @@ interface IAssetManager is
      * new ones and sets it for use by the pool.
      * NOTE: may only be called by the agent vault owner.
      */
-    function upgradeWNatContract(
-        address _agentVault
-    ) external;
+    function upgradeWNatContract(address _agentVault) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Collateral withdrawal announcement
@@ -322,10 +272,8 @@ interface IAssetManager is
      * @param _valueNATWei the amount to be withdrawn
      * @return _withdrawalAllowedAt the timestamp when the withdrawal can be made
      */
-    function announceVaultCollateralWithdrawal(
-        address _agentVault,
-        uint256 _valueNATWei
-    ) external
+    function announceVaultCollateralWithdrawal(address _agentVault, uint256 _valueNATWei)
+        external
         returns (uint256 _withdrawalAllowedAt);
 
     /**
@@ -337,10 +285,8 @@ interface IAssetManager is
      * @param _valueNATWei the amount to be withdrawn
      * @return _redemptionAllowedAt the timestamp when the redemption can be made
      */
-    function announceAgentPoolTokenRedemption(
-        address _agentVault,
-        uint256 _valueNATWei
-    ) external
+    function announceAgentPoolTokenRedemption(address _agentVault, uint256 _valueNATWei)
+        external
         returns (uint256 _redemptionAllowedAt);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -354,10 +300,7 @@ interface IAssetManager is
      *      reference of the form `0x4642505266410011000...0<agents_vault_address>`
      * @param _agentVault agent vault address
      */
-    function confirmTopupPayment(
-        IPayment.Proof calldata _payment,
-        address _agentVault
-    ) external;
+    function confirmTopupPayment(IPayment.Proof calldata _payment, address _agentVault) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Underlying withdrawal announcements
@@ -370,9 +313,7 @@ interface IAssetManager is
      * NOTE: may only be called by the agent vault owner.
      * @param _agentVault agent vault address
      */
-    function announceUnderlyingWithdrawal(
-        address _agentVault
-    ) external;
+    function announceUnderlyingWithdrawal(address _agentVault) external;
 
     /**
      * Agent must provide confirmation of performed underlying withdrawal, which updates free balance with used gas
@@ -383,10 +324,7 @@ interface IAssetManager is
      * @param _payment proof of the underlying payment
      * @param _agentVault agent vault address
      */
-    function confirmUnderlyingWithdrawal(
-        IPayment.Proof calldata _payment,
-        address _agentVault
-    ) external;
+    function confirmUnderlyingWithdrawal(IPayment.Proof calldata _payment, address _agentVault) external;
 
     /**
      * Cancel ongoing withdrawal of underlying currency.
@@ -396,9 +334,7 @@ interface IAssetManager is
      * NOTE: may only be called by the agent vault owner.
      * @param _agentVault agent vault address
      */
-    function cancelUnderlyingWithdrawal(
-        address _agentVault
-    ) external;
+    function cancelUnderlyingWithdrawal(address _agentVault) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Agent information
@@ -410,7 +346,8 @@ interface IAssetManager is
      * @param _end end index (one above last) to return from the available agent's list
      */
     function getAllAgents(uint256 _start, uint256 _end)
-        external view
+        external
+        view
         returns (address[] memory _agents, uint256 _totalLength);
 
     /**
@@ -419,9 +356,7 @@ interface IAssetManager is
      * @return structure containing agent's minting fee (BIPS), min collateral ratio (BIPS),
      *      and current free collateral (lots)
      */
-    function getAgentInfo(address _agentVault)
-        external view
-        returns (AgentInfo.Info memory);
+    function getAgentInfo(address _agentVault) external view returns (AgentInfo.Info memory);
 
     /**
      * Get agent's setting by name.
@@ -431,51 +366,40 @@ interface IAssetManager is
      *  `mintingVaultCollateralRatioBIPS`, `mintingPoolCollateralRatioBIPS`,`buyFAssetByAgentFactorBIPS`,
      *  `poolExitCollateralRatioBIPS`
      */
-    function getAgentSetting(address _agentVault, string memory _name)
-        external view
-        returns (uint256);
+    function getAgentSetting(address _agentVault, string memory _name) external view returns (uint256);
 
     /**
      * Returns the collateral pool address of the agent identified by `_agentVault`.
      */
-    function getCollateralPool(address _agentVault)
-        external view
-        returns (address);
+    function getCollateralPool(address _agentVault) external view returns (address);
 
     /**
      * Return the management address of the owner of the agent identified by `_agentVault`.
      */
-    function getAgentVaultOwner(address _agentVault)
-        external view
-        returns (address _ownerManagementAddress);
+    function getAgentVaultOwner(address _agentVault) external view returns (address _ownerManagementAddress);
 
     /**
      * Return vault collateral ERC20 token chosen by the agent identified by `_agentVault`.
      */
-    function getAgentVaultCollateralToken(address _agentVault)
-        external view
-        returns (IERC20);
+    function getAgentVaultCollateralToken(address _agentVault) external view returns (IERC20);
 
     /**
      * Return full vault collateral (free + locked) deposited in the vault `_agentVault`.
      */
-    function getAgentFullVaultCollateral(address _agentVault)
-        external view
-        returns (uint256);
+    function getAgentFullVaultCollateral(address _agentVault) external view returns (uint256);
 
     /**
      * Return full pool NAT collateral (free + locked) deposited in the vault `_agentVault`.
      */
-    function getAgentFullPoolCollateral(address _agentVault)
-        external view
-        returns (uint256);
+    function getAgentFullPoolCollateral(address _agentVault) external view returns (uint256);
 
     /**
      * Return the current liquidation factors and max liquidation amount of the agent
      * identified by `_agentVault`.
      */
     function getAgentLiquidationFactorsAndMaxAmount(address _agentVault)
-        external view
+        external
+        view
         returns (
             uint256 liquidationPaymentFactorVaultBIPS,
             uint256 liquidationPaymentFactorPoolBIPS,
@@ -485,16 +409,12 @@ interface IAssetManager is
     /**
      * Return the minimum collateral ratio of the pool collateral owned by vault `_agentVault`.
      */
-    function getAgentMinPoolCollateralRatioBIPS(address _agentVault)
-        external view
-        returns (uint256);
+    function getAgentMinPoolCollateralRatioBIPS(address _agentVault) external view returns (uint256);
 
     /**
      * Return the minimum collateral ratio of the vault collateral owned by vault `_agentVault`.
      */
-    function getAgentMinVaultCollateralRatioBIPS(address _agentVault)
-        external view
-        returns (uint256);
+    function getAgentMinVaultCollateralRatioBIPS(address _agentVault) external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // List of available agents (i.e. publicly available for minting).
@@ -505,9 +425,7 @@ interface IAssetManager is
      * NOTE: may only be called by the agent vault owner.
      * @param _agentVault agent vault address
      */
-    function makeAgentAvailable(
-        address _agentVault
-    ) external;
+    function makeAgentAvailable(address _agentVault) external;
 
     /**
      * Announce exit from the publicly available agents list.
@@ -515,19 +433,14 @@ interface IAssetManager is
      * @param _agentVault agent vault address
      * @return _exitAllowedAt the timestamp when the agent can exit
      */
-    function announceExitAvailableAgentList(
-        address _agentVault
-    ) external
-        returns (uint256 _exitAllowedAt);
+    function announceExitAvailableAgentList(address _agentVault) external returns (uint256 _exitAllowedAt);
 
     /**
      * Exit the publicly available agents list.
      * NOTE: may only be called by the agent vault owner and after announcement.
      * @param _agentVault agent vault address
      */
-    function exitAvailableAgentList(
-        address _agentVault
-    ) external;
+    function exitAvailableAgentList(address _agentVault) external;
 
     /**
      * Get (a part of) the list of available agents.
@@ -536,7 +449,8 @@ interface IAssetManager is
      * @param _end end index (one above last) to return from the available agent's list
      */
     function getAvailableAgentsList(uint256 _start, uint256 _end)
-        external view
+        external
+        view
         returns (address[] memory _agents, uint256 _totalLength);
 
     /**
@@ -549,7 +463,8 @@ interface IAssetManager is
      * @param _end end index (one above last) to return from the available agent's list
      */
     function getAvailableAgentsDetailedList(uint256 _start, uint256 _end)
-        external view
+        external
+        view
         returns (AvailableAgentInfo.Data[] memory _agents, uint256 _totalLength);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -578,8 +493,7 @@ interface IAssetManager is
         uint256 _lots,
         uint256 _maxMintingFeeBIPS,
         address payable _executor
-    ) external payable
-        returns (uint256 _collateralReservationId);
+    ) external payable returns (uint256 _collateralReservationId);
 
     /**
      * Return the collateral reservation fee amount that has to be passed to the `reserveCollateral` method.
@@ -590,9 +504,7 @@ interface IAssetManager is
      * @param _lots the number of lots for which to reserve collateral
      * @return _reservationFeeNATWei the amount of reservation fee in NAT wei
      */
-    function collateralReservationFee(uint256 _lots)
-        external view
-        returns (uint256 _reservationFeeNATWei);
+    function collateralReservationFee(uint256 _lots) external view returns (uint256 _reservationFeeNATWei);
 
     /**
      * Returns the data about the collateral reservation for an ongoing minting.
@@ -600,7 +512,8 @@ interface IAssetManager is
      * @param _collateralReservationId the collateral reservation id, as used for executing or defaulting the minting
      */
     function collateralReservationInfo(uint256 _collateralReservationId)
-        external view
+        external
+        view
         returns (CollateralReservationInfo.Data memory);
 
     /**
@@ -612,10 +525,7 @@ interface IAssetManager is
      *      payment reference)
      * @param _collateralReservationId collateral reservation id
      */
-    function executeMinting(
-        IPayment.Proof calldata _payment,
-        uint256 _collateralReservationId
-    ) external;
+    function executeMinting(IPayment.Proof calldata _payment, uint256 _collateralReservationId) external;
 
     /**
      * When the time for the minter to pay the underlying amount is over (i.e. the last underlying block has passed),
@@ -643,10 +553,9 @@ interface IAssetManager is
      *      the payment/non-payment proof anymore
      * @param _collateralReservationId collateral reservation id
      */
-    function unstickMinting(
-        IConfirmedBlockHeightExists.Proof calldata _proof,
-        uint256 _collateralReservationId
-    ) external payable;
+    function unstickMinting(IConfirmedBlockHeightExists.Proof calldata _proof, uint256 _collateralReservationId)
+        external
+        payable;
 
     /**
      * Agent can mint against himself.
@@ -659,11 +568,7 @@ interface IAssetManager is
      * @param _agentVault agent vault address
      * @param _lots number of lots to mint
      */
-    function selfMint(
-        IPayment.Proof calldata _payment,
-        address _agentVault,
-        uint256 _lots
-    ) external;
+    function selfMint(IPayment.Proof calldata _payment, address _agentVault, uint256 _lots) external;
 
     /**
      * If an agent has enough free underlying, they can mint immediately without any underlying payment.
@@ -674,10 +579,7 @@ interface IAssetManager is
      * @param _agentVault agent vault address
      * @param _lots number of lots to mint
      */
-    function mintFromFreeUnderlying(
-        address _agentVault,
-        uint64 _lots
-    ) external;
+    function mintFromFreeUnderlying(address _agentVault, uint64 _lots) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Redemption
@@ -699,11 +601,9 @@ interface IAssetManager is
      * @return _redeemedAmountUBA the actual redeemed amount; may be less than requested if there are not enough
      *      redemption tickets available or the maximum redemption ticket limit is reached
      */
-    function redeem(
-        uint256 _lots,
-        string memory _redeemerUnderlyingAddressString,
-        address payable _executor
-    ) external payable
+    function redeem(uint256 _lots, string memory _redeemerUnderlyingAddressString, address payable _executor)
+        external
+        payable
         returns (uint256 _redeemedAmountUBA);
 
     /**
@@ -715,10 +615,7 @@ interface IAssetManager is
      * @param _proof proof that the address is invalid
      * @param _redemptionRequestId id of an existing redemption request
      */
-    function rejectInvalidRedemption(
-        IAddressValidity.Proof calldata _proof,
-        uint256 _redemptionRequestId
-    ) external;
+    function rejectInvalidRedemption(IAddressValidity.Proof calldata _proof, uint256 _redemptionRequestId) external;
 
     /**
      * After paying to the redeemer, the agent must call this method to unlock the collateral
@@ -735,10 +632,7 @@ interface IAssetManager is
      *      payment reference)
      * @param _redemptionRequestId id of an existing redemption request
      */
-    function confirmRedemptionPayment(
-        IPayment.Proof calldata _payment,
-        uint256 _redemptionRequestId
-    ) external;
+    function confirmRedemptionPayment(IPayment.Proof calldata _payment, uint256 _redemptionRequestId) external;
 
     /**
      * If the agent doesn't transfer the redeemed underlying assets in time (until the last allowed block on
@@ -779,7 +673,8 @@ interface IAssetManager is
      * @param _redemptionRequestId the redemption request id, as used for confirming or defaulting the redemption
      */
     function redemptionRequestInfo(uint256 _redemptionRequestId)
-        external view
+        external
+        view
         returns (RedemptionRequestInfo.Data memory);
 
     /**
@@ -792,11 +687,7 @@ interface IAssetManager is
      * @return _closedAmountUBA the actual self-closed amount, may be less than requested if there are not enough
      *      redemption tickets available or the maximum redemption ticket limit is reached
      */
-    function selfClose(
-        address _agentVault,
-        uint256 _amountUBA
-    ) external
-        returns (uint256 _closedAmountUBA);
+    function selfClose(address _agentVault, uint256 _amountUBA) external returns (uint256 _closedAmountUBA);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Redemption queue info
@@ -809,10 +700,9 @@ interface IAssetManager is
      * @return _nextRedemptionTicketId works as a cursor - if the _pageSize is reached and there are more tickets,
      *  it is the first ticket id not returned; if the end is reached, it is 0
      */
-    function redemptionQueue(
-        uint256 _firstRedemptionTicketId,
-        uint256 _pageSize
-    ) external view
+    function redemptionQueue(uint256 _firstRedemptionTicketId, uint256 _pageSize)
+        external
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId);
 
     /**
@@ -824,11 +714,9 @@ interface IAssetManager is
      * @return _nextRedemptionTicketId works as a cursor - if the _pageSize is reached and there are more tickets,
      *  it is the first ticket id not returned; if the end is reached, it is 0
      */
-    function agentRedemptionQueue(
-        address _agentVault,
-        uint256 _firstRedemptionTicketId,
-        uint256 _pageSize
-    ) external view
+    function agentRedemptionQueue(address _agentVault, uint256 _firstRedemptionTicketId, uint256 _pageSize)
+        external
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -846,9 +734,7 @@ interface IAssetManager is
      * only be called when the agent doesn't have any minting.
      * @param _agentVault agent vault address
      */
-    function convertDustToTicket(
-        address _agentVault
-    ) external;
+    function convertDustToTicket(address _agentVault) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Liquidation
@@ -859,10 +745,7 @@ interface IAssetManager is
      * @param _agentVault agent vault address
      * @return _liquidationStartTs timestamp when liquidation started
      */
-    function startLiquidation(
-        address _agentVault
-    ) external
-        returns (uint256 _liquidationStartTs);
+    function startLiquidation(address _agentVault) external returns (uint256 _liquidationStartTs);
 
     /**
      * Burns up to `_amountUBA` f-assets owned by the caller and pays
@@ -876,10 +759,8 @@ interface IAssetManager is
      * @return _amountPaidVault amount paid to liquidator (in agent's vault collateral)
      * @return _amountPaidPool amount paid to liquidator (in NAT from pool)
      */
-    function liquidate(
-        address _agentVault,
-        uint256 _amountUBA
-    ) external
+    function liquidate(address _agentVault, uint256 _amountUBA)
+        external
         returns (uint256 _liquidatedAmountUBA, uint256 _amountPaidVault, uint256 _amountPaidPool);
 
     /**
@@ -891,9 +772,7 @@ interface IAssetManager is
      * NOTE: if the method succeeds, the agent's liquidation has ended.
      * @param _agentVault agent vault address
      */
-    function endLiquidation(
-        address _agentVault
-    ) external;
+    function endLiquidation(address _agentVault) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Challenges
@@ -906,10 +785,8 @@ interface IAssetManager is
      * @param _payment proof of a transaction from the agent's underlying address
      * @param _agentVault agent vault address
      */
-    function illegalPaymentChallenge(
-        IBalanceDecreasingTransaction.Proof calldata _payment,
-        address _agentVault
-    ) external;
+    function illegalPaymentChallenge(IBalanceDecreasingTransaction.Proof calldata _payment, address _agentVault)
+        external;
 
     /**
      * Called with proofs of two payments made from the agent's underlying address
@@ -933,8 +810,6 @@ interface IAssetManager is
      * @param _payments proofs of several distinct payments from the agent's underlying address
      * @param _agentVault agent vault address
      */
-    function freeBalanceNegativeChallenge(
-        IBalanceDecreasingTransaction.Proof[] calldata _payments,
-        address _agentVault
-    ) external;
+    function freeBalanceNegativeChallenge(IBalanceDecreasingTransaction.Proof[] calldata _payments, address _agentVault)
+        external;
 }

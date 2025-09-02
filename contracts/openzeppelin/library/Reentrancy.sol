@@ -5,12 +5,10 @@
 
 pragma solidity ^0.8.27;
 
-
 /**
  * Code for the `ReentrancyGuard` contract.
  */
 library Reentrancy {
-
     error ReentrancyGuardReentrantCall();
     error ReentrancyGuardRequired();
 

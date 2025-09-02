@@ -58,20 +58,13 @@ contract CollateralReservationsFacet is AssetManagerBase, ReentrancyGuard {
         uint256 _lots,
         uint256 _maxMintingFeeBIPS,
         address payable _executor
-    )
-        external payable
-        onlyAttached
-        notEmergencyPaused
-        nonReentrant
-        returns (uint256 _collateralReservationId)
-    {
+    ) external payable onlyAttached notEmergencyPaused nonReentrant returns (uint256 _collateralReservationId) {
         Agent.State storage agent = Agent.get(_agentVault);
         Agents.requireWhitelistedAgentVaultOwner(agent);
         Collateral.CombinedData memory collateralData = AgentCollateral.combinedData(agent);
         AssetManagerState.State storage state = AssetManagerState.get();
         require(state.mintingPausedAt == 0, MintingPaused());
-        require(agent.availableAgentsPos != 0 || agent.alwaysAllowedMinters.contains(msg.sender),
-            AgentNotInMintQueue());
+        require(agent.availableAgentsPos != 0 || agent.alwaysAllowedMinters.contains(msg.sender), AgentNotInMintQueue());
         require(_lots > 0, CannotMintZeroLots());
         require(agent.status == Agent.Status.NORMAL, InvalidAgentStatus());
         require(collateralData.freeCollateralLots(agent) >= _lots, NotEnoughFreeCollateral());
@@ -125,23 +118,13 @@ contract CollateralReservationsFacet is AssetManagerBase, ReentrancyGuard {
      * @param _lots the number of lots for which to reserve collateral
      * @return _reservationFeeNATWei the amount of reservation fee in NAT wei
      */
-    function collateralReservationFee(
-        uint256 _lots
-    )
-        external view
-        returns (uint256 _reservationFeeNATWei)
-    {
+    function collateralReservationFee(uint256 _lots) external view returns (uint256 _reservationFeeNATWei) {
         AssetManagerState.State storage state = AssetManagerState.get();
         uint256 amgToTokenWeiPrice = Conversion.currentAmgPriceInTokenWei(state.poolCollateralIndex);
         return _reservationFee(amgToTokenWeiPrice, Conversion.convertLotsToAMG(_lots));
     }
 
-    function _reserveCollateral(
-        Agent.State storage _agent,
-        uint64 _reservationAMG
-    )
-        private
-    {
+    function _reserveCollateral(Agent.State storage _agent, uint64 _reservationAMG) private {
         AssetManagerState.State storage state = AssetManagerState.get();
         Minting.checkMintingCap(_reservationAMG);
         _agent.reservedAMG += _reservationAMG;
@@ -152,9 +135,7 @@ contract CollateralReservationsFacet is AssetManagerBase, ReentrancyGuard {
         Agent.State storage _agent,
         CollateralReservation.Data memory _cr,
         uint256 _crtId
-    )
-        private
-    {
+    ) private {
         emit IAssetManagerEvents.CollateralReserved(
             _agent.vaultAddress(),
             _cr.minter,
@@ -167,43 +148,28 @@ contract CollateralReservationsFacet is AssetManagerBase, ReentrancyGuard {
             _agent.underlyingAddressString,
             PaymentReference.minting(_crtId),
             _cr.executor,
-            _cr.executorFeeNatGWei * Conversion.GWEI);
+            _cr.executorFeeNatGWei * Conversion.GWEI
+        );
     }
 
-    function _currentPoolFeeAMG(
-        Agent.State storage _agent,
-        uint64 _valueAMG
-    )
-        private view
-        returns (uint64)
-    {
+    function _currentPoolFeeAMG(Agent.State storage _agent, uint64 _valueAMG) private view returns (uint64) {
         uint256 underlyingValueUBA = Conversion.convertAmgToUBA(_valueAMG);
         uint256 poolFeeUBA = Minting.calculateCurrentPoolFeeUBA(_agent, underlyingValueUBA);
         return Conversion.convertUBAToAmg(poolFeeUBA);
     }
 
-    function _lastPaymentBlock()
-        private view
-        returns (uint64 _lastUnderlyingBlock, uint64 _lastUnderlyingTimestamp)
-    {
+    function _lastPaymentBlock() private view returns (uint64 _lastUnderlyingBlock, uint64 _lastUnderlyingTimestamp) {
         AssetManagerState.State storage state = AssetManagerState.get();
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // timeshift amortizes for the time that passed from the last underlying block update
         uint64 timeshift = block.timestamp.toUint64() - state.currentUnderlyingBlockUpdatedAt;
         uint64 blockshift = (uint256(timeshift) * 1000 / settings.averageBlockTimeMS).toUint64();
-        _lastUnderlyingBlock =
-            state.currentUnderlyingBlock + blockshift + settings.underlyingBlocksForPayment;
+        _lastUnderlyingBlock = state.currentUnderlyingBlock + blockshift + settings.underlyingBlocksForPayment;
         _lastUnderlyingTimestamp =
             state.currentUnderlyingBlockTimestamp + timeshift + settings.underlyingSecondsForPayment;
     }
 
-    function _reservationFee(
-        uint256 amgToTokenWeiPrice,
-        uint64 _valueAMG
-    )
-        private view
-        returns (uint256)
-    {
+    function _reservationFee(uint256 amgToTokenWeiPrice, uint64 _valueAMG) private view returns (uint256) {
         uint256 valueNATWei = Conversion.convertAmgToTokenWei(_valueAMG, amgToTokenWeiPrice);
         return valueNATWei.mulBips(Globals.getSettings().collateralReservationFeeBIPS);
     }

@@ -41,19 +41,14 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     /**
      * @dev See {IERC20Permit-permit}.
      */
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public virtual override {
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        public
+        virtual
+        override
+    {
         require(block.timestamp <= deadline, ERC20PermitExpiredDeadline());
 
-        bytes32 structHash =
-            keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
 
         bytes32 hash = _hashTypedDataV4(structHash);
 
@@ -92,10 +87,7 @@ abstract contract ERC20Permit is IERC20Permit, EIP712 {
     // keccak256(abi.encode(uint256(keccak256("fasset.openzeppelin.ERC20Permit")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant ERC20PERMIT_STORAGE = 0x361beb44631d074062265988ad0b416453c05cfc27148633e5eff4da54187b00;
 
-    function _getERC20PermitState()
-        private pure
-        returns (ERC20PermitState storage _state)
-    {
+    function _getERC20PermitState() private pure returns (ERC20PermitState storage _state) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             _state.slot := ERC20PERMIT_STORAGE

@@ -23,10 +23,7 @@ contract CollateralPoolHandler is Test {
     uint256 public mul;
     uint256 public div;
 
-    constructor(
-        CollateralPool _collateralPool,
-        FAsset _fAsset
-    ) {
+    constructor(CollateralPool _collateralPool, FAsset _fAsset) {
         collateralPool = _collateralPool;
         fAsset = _fAsset;
         assetManager = address(fAsset.assetManager());
@@ -75,7 +72,7 @@ contract CollateralPoolHandler is Test {
                 if (totalPoolTokens > 1 ether) {
                     vm.prank(account);
                     uint256 maxExitAmount = totalPoolTokens - 1 ether;
-                    uint256 tokenShare = Math.min(maxExitAmount / 2, balance/2);
+                    uint256 tokenShare = Math.min(maxExitAmount / 2, balance / 2);
                     collateralPool.exit(tokenShare);
                 }
             }
@@ -102,10 +99,7 @@ contract CollateralPoolHandler is Test {
         _tokenShare = bound(_tokenShare, 1, balance).toUint128();
         vm.prank(account);
         collateralPool.selfCloseExit(
-            _tokenShare,
-            _redeemToCollateral,
-            "underlyingAddress",
-            payable(makeAddr("executor"))
+            _tokenShare, _redeemToCollateral, "underlyingAddress", payable(makeAddr("executor"))
         );
     }
 
@@ -118,21 +112,9 @@ contract CollateralPoolHandler is Test {
     ) public {
         _amountMint = bound(_amountMint, 1 ether, 1 ether * 1e3).toUint128();
         _feePercentageBIPS = bound(_feePercentageBIPS, 1, 6000).toUint16();
-        fAssetFeeDeposited(
-            _amountMint,
-            _accIndex,
-            _feePercentageBIPS,
-            _accIndex,
-            _amountEnter
-        );
+        fAssetFeeDeposited(_amountMint, _accIndex, _feePercentageBIPS, _accIndex, _amountEnter);
 
-        fAssetFeeDeposited(
-            _amountMint / 2,
-            _accIndex,
-            _feePercentageBIPS / 2,
-            _accIndex,
-            _amountEnter / 2
-        );
+        fAssetFeeDeposited(_amountMint / 2, _accIndex, _feePercentageBIPS / 2, _accIndex, _amountEnter / 2);
         _accIndex = bound(_accIndex, 0, accounts.length - 1).toUint8();
         address account = accounts[_accIndex];
         uint256 fAssetFeesOf = collateralPool.fAssetFeesOf(account);
@@ -157,11 +139,7 @@ contract CollateralPoolHandler is Test {
         collateralPool.depositNat{value: _amount}();
     }
 
-    function payout(
-        address _recipient,
-        uint128 _amountWei,
-        uint128 _agentResponsibilityWei
-    ) public {
+    function payout(address _recipient, uint128 _amountWei, uint128 _agentResponsibilityWei) public {
         // Avoid sending payout to the pool itself
         if (_recipient == address(collateralPool)) {
             _recipient = makeAddr("recipient");
@@ -170,7 +148,7 @@ contract CollateralPoolHandler is Test {
         // payout amount can't exceed total collateral
         if (totalCollateral == 0) return;
         _amountWei = bound(_amountWei, 1, totalCollateral).toUint128();
-        _agentResponsibilityWei = bound(_agentResponsibilityWei, 0,  _amountWei).toUint128();
+        _agentResponsibilityWei = bound(_agentResponsibilityWei, 0, _amountWei).toUint128();
         vm.prank(assetManager);
         collateralPool.payout(_recipient, _amountWei, _agentResponsibilityWei);
     }

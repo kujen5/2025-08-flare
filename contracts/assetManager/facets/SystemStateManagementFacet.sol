@@ -5,7 +5,6 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {AssetManagerBase} from "./AssetManagerBase.sol";
 import {AssetManagerState} from "../library/data/AssetManagerState.sol";
 
-
 contract SystemStateManagementFacet is AssetManagerBase {
     using SafeCast for uint256;
 
@@ -19,10 +18,7 @@ contract SystemStateManagementFacet is AssetManagerBase {
      * the asset manager that it has been added.
      * The `attached` can be set to false when the retired asset manager is removed from the controller.
      */
-    function attachController(bool attached)
-        external
-        onlyAssetManagerController
-    {
+    function attachController(bool attached) external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         state.attached = attached;
     }
@@ -32,10 +28,7 @@ contract SystemStateManagementFacet is AssetManagerBase {
      * All other operations continue normally.
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function pauseMinting()
-        external
-        onlyAssetManagerController
-    {
+    function pauseMinting() external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         if (state.mintingPausedAt == 0) {
             state.mintingPausedAt = block.timestamp.toUint64();
@@ -46,10 +39,7 @@ contract SystemStateManagementFacet is AssetManagerBase {
      * Minting can continue.
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function unpauseMinting()
-        external
-        onlyAssetManagerController
-    {
+    function unpauseMinting() external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         state.mintingPausedAt = 0;
     }

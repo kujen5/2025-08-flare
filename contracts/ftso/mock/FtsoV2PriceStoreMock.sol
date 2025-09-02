@@ -6,7 +6,6 @@ pragma solidity ^0.8.27;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {FtsoV2PriceStore} from "../implementation/FtsoV2PriceStore.sol";
 
-
 contract FtsoV2PriceStoreMock is FtsoV2PriceStore {
     using SafeCast for uint256;
 

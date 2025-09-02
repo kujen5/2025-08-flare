@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.6 <0.9;
 
-
 interface IPriceReader {
-
     /**
      * Returns the price for the given symbol.
      * @param _symbol The symbol.
@@ -12,7 +10,8 @@ interface IPriceReader {
      * @return _priceDecimals The price decimals.
      */
     function getPrice(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals);
 
     /**
@@ -23,7 +22,8 @@ interface IPriceReader {
      * @return _priceDecimals The price decimals.
      */
     function getPriceFromTrustedProviders(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals);
 
     /**
@@ -35,6 +35,7 @@ interface IPriceReader {
      * @return _numberOfSubmits The number of submits that were used to calculate the price.
      */
     function getPriceFromTrustedProvidersWithQuality(string memory _symbol)
-        external view
+        external
+        view
         returns (uint256 _price, uint256 _timestamp, uint256 _priceDecimals, uint8 _numberOfSubmits);
 }

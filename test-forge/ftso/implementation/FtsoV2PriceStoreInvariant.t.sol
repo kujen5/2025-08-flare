@@ -9,7 +9,6 @@ import {FtsoV2PriceStoreHandler} from "./FtsoV2PriceStoreHandler.t.sol";
 
 // solhint-disable func-name-mixedcase
 contract FtsoV2PriceStoreInvariantTest is Test {
-
     FtsoV2PriceStore private ftsoV2PriceStoreImpl;
     FtsoV2PriceStoreProxy private ftsoV2PriceStoreProxy;
     FtsoV2PriceStore private ftsoV2PriceStore;
@@ -64,12 +63,7 @@ contract FtsoV2PriceStoreInvariantTest is Test {
         ftsoV2PriceStore.updateContractAddresses(contractNameHashes, contractAddresses);
 
         handler = new FtsoV2PriceStoreHandler(
-            ftsoV2PriceStore,
-            governance,
-            relayMock,
-            firstVotingRoundStartTs,
-            votingEpochDurationSeconds,
-            ftsoProtocolId
+            ftsoV2PriceStore, governance, relayMock, firstVotingRoundStartTs, votingEpochDurationSeconds, ftsoProtocolId
         );
 
         address[] memory trustedProviders = new address[](1);
@@ -78,16 +72,11 @@ contract FtsoV2PriceStoreInvariantTest is Test {
         ftsoV2PriceStore.setTrustedProviders(trustedProviders, 1);
 
         targetContract(address(handler));
-        bytes4 [] memory selectors = new bytes4[](2);
+        bytes4[] memory selectors = new bytes4[](2);
         selectors[0] = handler.publishPrices.selector;
         selectors[1] = handler.submitTrustedPrices.selector;
 
-        targetSelector(
-            FuzzSelector({
-                addr: address(handler),
-                selectors: selectors
-            })
-        );
+        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
     }
 
     function invariant_priceStore() public {

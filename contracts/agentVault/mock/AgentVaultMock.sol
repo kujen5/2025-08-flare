@@ -4,7 +4,6 @@ pragma solidity ^0.8.27;
 import {IICollateralPool} from "../../collateralPool/interfaces/IICollateralPool.sol";
 
 contract AgentVaultMock {
-
     address public assetManager;
     address public owner;
 

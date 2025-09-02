@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-
 library CollateralReservation {
     enum Status {
-        ACTIVE,         // the minting process hasn't finished yet
-        SUCCESSFUL,     // the payment has been confirmed and the FAssets minted
-        DEFAULTED,      // the payment has defaulted and the agent received the collateral reservation fee
-        EXPIRED         // the confirmation time has expired and the agent called unstickMinting
+        ACTIVE, // the minting process hasn't finished yet
+        SUCCESSFUL, // the payment has been confirmed and the FAssets minted
+        DEFAULTED, // the payment has defaulted and the agent received the collateral reservation fee
+        EXPIRED // the confirmation time has expired and the agent called unstickMinting
+
     }
 
     struct Data {

@@ -6,14 +6,12 @@ pragma solidity ^0.8.27;
 
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 
-
 /**
  * A special contract that holds Flare governance address.
  * This contract enables updating governance address and timelock only by hard forking the network,
  * meaning only by updating validator code.
  */
 contract GovernanceSettingsMock is IGovernanceSettings {
-
     address public constant SIGNAL_COINBASE = address(0x00000000000000000000000000000000000dEAD0);
 
     uint256 internal constant MAX_TIMELOCK = 365 days;
@@ -31,25 +29,13 @@ contract GovernanceSettingsMock is IGovernanceSettings {
 
     // executor addresses, changeable anytime by the governance
     address[] private executors;
-    mapping (address => bool) private executorMap;
+    mapping(address => bool) private executorMap;
 
-    event GovernanceAddressUpdated(
-        uint256 timestamp,
-        address oldGovernanceAddress,
-        address newGovernanceAddress
-    );
+    event GovernanceAddressUpdated(uint256 timestamp, address oldGovernanceAddress, address newGovernanceAddress);
 
-    event GovernanceTimelockUpdated(
-        uint256 timestamp,
-        uint256 oldTimelock,
-        uint256 newTimelock
-    );
+    event GovernanceTimelockUpdated(uint256 timestamp, uint256 oldTimelock, uint256 newTimelock);
 
-    event GovernanceExecutorsUpdated(
-        uint256 timestamp,
-        address[] oldExecutors,
-        address[] newExecutors
-    );
+    event GovernanceExecutorsUpdated(uint256 timestamp, address[] oldExecutors, address[] newExecutors);
 
     /**
      * Perform initialisation, which cannot be done in constructor, since this is a genesis contract.

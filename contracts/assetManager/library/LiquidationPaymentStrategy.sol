@@ -15,12 +15,9 @@ library LiquidationPaymentStrategy {
 
     // Liquidation premium step (depends on time, but is capped by the current collateral ratio)
     // assumed: agentStatus == LIQUIDATION/FULL_LIQUIDATION
-    function currentLiquidationFactorBIPS(
-        Agent.State storage _agent,
-        uint256 _vaultCR,
-        uint256 _poolCR
-    )
-        internal view
+    function currentLiquidationFactorBIPS(Agent.State storage _agent, uint256 _vaultCR, uint256 _poolCR)
+        internal
+        view
         returns (uint256 _c1FactorBIPS, uint256 _poolFactorBIPS)
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -54,12 +51,7 @@ library LiquidationPaymentStrategy {
 
     // Liquidation premium step (depends on time since liquidation was started)
     // assumed: agentStatus == LIQUIDATION/FULL_LIQUIDATION
-    function _currentLiquidationStep(
-        Agent.State storage _agent
-    )
-        private view
-        returns (uint256)
-    {
+    function _currentLiquidationStep(Agent.State storage _agent) private view returns (uint256) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // calculate premium step based on time since liquidation started
         uint256 liquidationStart = _agent.liquidationStartedAt;

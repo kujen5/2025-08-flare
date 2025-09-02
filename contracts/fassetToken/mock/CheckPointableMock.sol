@@ -6,7 +6,8 @@ import {CheckPointable} from "../implementation/CheckPointable.sol";
 /**
  * @title CheckPointable mock contract
  * @notice A contract to instantiate the abstract CheckPointable contract for unit testing.
- **/
+ *
+ */
 contract CheckPointableMock is CheckPointable {
     function burnForAtNow(address _owner, uint256 _amount) public {
         _burnForAtNow(_owner, _amount);

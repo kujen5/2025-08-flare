@@ -24,12 +24,7 @@ library AgentUpdates {
     error ValueTooLow();
     error IncreaseTooBig();
 
-    function setVaultCollateral(
-        Agent.State storage _agent,
-        IERC20 _token
-    )
-        internal
-    {
+    function setVaultCollateral(Agent.State storage _agent, IERC20 _token) internal {
         AssetManagerState.State storage state = AssetManagerState.get();
         uint256 tokenIndex = CollateralTypes.getIndex(CollateralType.Class.VAULT, _token);
         CollateralTypeInt.Data storage collateral = state.collateralTokens[tokenIndex];
@@ -44,66 +39,38 @@ library AgentUpdates {
         require(crBIPS >= collateral.minCollateralRatioBIPS, NotEnoughCollateral());
     }
 
-    function setMintingVaultCollateralRatioBIPS(
-        Agent.State storage _agent,
-        uint256 _mintingVaultCollateralRatioBIPS
-    )
+    function setMintingVaultCollateralRatioBIPS(Agent.State storage _agent, uint256 _mintingVaultCollateralRatioBIPS)
         internal
     {
         CollateralTypeInt.Data storage collateral = Agents.getVaultCollateral(_agent);
-        require(_mintingVaultCollateralRatioBIPS >= collateral.minCollateralRatioBIPS,
-            CollateralRatioTooSmall());
+        require(_mintingVaultCollateralRatioBIPS >= collateral.minCollateralRatioBIPS, CollateralRatioTooSmall());
         _agent.mintingVaultCollateralRatioBIPS = _mintingVaultCollateralRatioBIPS.toUint32();
     }
 
-    function setMintingPoolCollateralRatioBIPS(
-        Agent.State storage _agent,
-        uint256 _mintingPoolCollateralRatioBIPS
-    )
+    function setMintingPoolCollateralRatioBIPS(Agent.State storage _agent, uint256 _mintingPoolCollateralRatioBIPS)
         internal
     {
         CollateralTypeInt.Data storage collateral = Agents.getPoolCollateral(_agent);
-        require(_mintingPoolCollateralRatioBIPS >= collateral.minCollateralRatioBIPS,
-            CollateralRatioTooSmall());
+        require(_mintingPoolCollateralRatioBIPS >= collateral.minCollateralRatioBIPS, CollateralRatioTooSmall());
         _agent.mintingPoolCollateralRatioBIPS = _mintingPoolCollateralRatioBIPS.toUint32();
     }
 
-    function setFeeBIPS(
-        Agent.State storage _agent,
-        uint256 _feeBIPS
-    )
-        internal
-    {
+    function setFeeBIPS(Agent.State storage _agent, uint256 _feeBIPS) internal {
         require(_feeBIPS <= SafePct.MAX_BIPS, FeeTooHigh());
         _agent.feeBIPS = _feeBIPS.toUint16();
     }
 
-    function setPoolFeeShareBIPS(
-        Agent.State storage _agent,
-        uint256 _poolFeeShareBIPS
-    )
-        internal
-    {
+    function setPoolFeeShareBIPS(Agent.State storage _agent, uint256 _poolFeeShareBIPS) internal {
         require(_poolFeeShareBIPS <= SafePct.MAX_BIPS, ValueTooHigh());
         _agent.poolFeeShareBIPS = _poolFeeShareBIPS.toUint16();
     }
 
-    function setRedemptionPoolFeeShareBIPS(
-        Agent.State storage _agent,
-        uint256 _redemptionPoolFeeShareBIPS
-    )
-        internal
-    {
+    function setRedemptionPoolFeeShareBIPS(Agent.State storage _agent, uint256 _redemptionPoolFeeShareBIPS) internal {
         require(_redemptionPoolFeeShareBIPS <= SafePct.MAX_BIPS, ValueTooHigh());
         _agent.redemptionPoolFeeShareBIPS = _redemptionPoolFeeShareBIPS.toUint16();
     }
 
-    function setBuyFAssetByAgentFactorBIPS(
-        Agent.State storage _agent,
-        uint256 _buyFAssetByAgentFactorBIPS
-    )
-        internal
-    {
+    function setBuyFAssetByAgentFactorBIPS(Agent.State storage _agent, uint256 _buyFAssetByAgentFactorBIPS) internal {
         // This factor's function is to compensate agent in case of price fluctuations, so allowing it
         // above 100% doesn't make sense - it is only good for exploits.
         require(_buyFAssetByAgentFactorBIPS <= SafePct.MAX_BIPS, ValueTooHigh());
@@ -113,10 +80,7 @@ library AgentUpdates {
         _agent.buyFAssetByAgentFactorBIPS = _buyFAssetByAgentFactorBIPS.toUint16();
     }
 
-    function setPoolExitCollateralRatioBIPS(
-        Agent.State storage _agent,
-        uint256 _poolExitCollateralRatioBIPS
-    )
+    function setPoolExitCollateralRatioBIPS(Agent.State storage _agent, uint256 _poolExitCollateralRatioBIPS)
         internal
     {
         CollateralTypeInt.Data storage collateral = Agents.getPoolCollateral(_agent);
@@ -125,9 +89,10 @@ library AgentUpdates {
         uint256 currentExitCR = _agent.collateralPool.exitCollateralRatioBIPS();
         // if minCollateralRatioBIPS is increased too quickly, it may be impossible for pool exit CR
         // to be increased fast enough, so it can always be changed up to 1.2 * minCR
-        require(_poolExitCollateralRatioBIPS <= currentExitCR * 3 / 2 ||
-                _poolExitCollateralRatioBIPS <= minCR * 12 / 10,
-                IncreaseTooBig());
+        require(
+            _poolExitCollateralRatioBIPS <= currentExitCR * 3 / 2 || _poolExitCollateralRatioBIPS <= minCR * 12 / 10,
+            IncreaseTooBig()
+        );
         // never allow exitCR to grow too big, even in several steps
         require(_poolExitCollateralRatioBIPS <= minCR * 3, ValueTooHigh());
         _agent.collateralPool.setExitCollateralRatioBIPS(_poolExitCollateralRatioBIPS);

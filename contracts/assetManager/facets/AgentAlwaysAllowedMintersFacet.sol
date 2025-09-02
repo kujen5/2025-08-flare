@@ -5,14 +5,10 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {AssetManagerBase} from "./AssetManagerBase.sol";
 import {Agent} from "../../assetManager/library/data/Agent.sol";
 
-
 contract AgentAlwaysAllowedMintersFacet is AssetManagerBase {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    function addAlwaysAllowedMinterForAgent(
-        address _agentVault,
-        address _minter
-    )
+    function addAlwaysAllowedMinterForAgent(address _agentVault, address _minter)
         external
         onlyAgentVaultOwner(_agentVault)
     {
@@ -20,10 +16,7 @@ contract AgentAlwaysAllowedMintersFacet is AssetManagerBase {
         agent.alwaysAllowedMinters.add(_minter);
     }
 
-    function removeAlwaysAllowedMinterForAgent(
-        address _agentVault,
-        address _minter
-    )
+    function removeAlwaysAllowedMinterForAgent(address _agentVault, address _minter)
         external
         onlyAgentVaultOwner(_agentVault)
     {
@@ -31,12 +24,7 @@ contract AgentAlwaysAllowedMintersFacet is AssetManagerBase {
         agent.alwaysAllowedMinters.remove(_minter);
     }
 
-    function alwaysAllowedMintersForAgent(
-        address _agentVault
-    )
-        external view
-        returns (address[] memory)
-    {
+    function alwaysAllowedMintersForAgent(address _agentVault) external view returns (address[] memory) {
         Agent.State storage agent = Agent.get(_agentVault);
         return agent.alwaysAllowedMinters.values();
     }

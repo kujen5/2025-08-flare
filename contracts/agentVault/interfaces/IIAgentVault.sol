@@ -6,7 +6,6 @@ import {IAgentVault} from "../../userInterfaces/IAgentVault.sol";
 import {IIAssetManager} from "../../assetManager/interfaces/IIAssetManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 interface IIAgentVault is IAgentVault {
     /**
      * Used by asset manager when destroying agent.

@@ -6,9 +6,7 @@ import {Globals} from "./Globals.sol";
 import {SettingsValidators} from "./SettingsValidators.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 
-
 library SettingsInitializer {
-
     struct SettingsWrapper {
         AssetManagerSettings.Data settings;
     }
@@ -23,20 +21,12 @@ library SettingsInitializer {
     error ZeroAddress();
     error MintingCapTooSmall();
 
-    function validateAndSet(
-        AssetManagerSettings.Data memory _settings
-    )
-        internal
-    {
+    function validateAndSet(AssetManagerSettings.Data memory _settings) internal {
         _validateSettings(_settings);
         _setAllSettings(_settings);
     }
 
-    function _setAllSettings(
-        AssetManagerSettings.Data memory _settings
-    )
-        private
-    {
+    function _setAllSettings(AssetManagerSettings.Data memory _settings) private {
         // cannot set value at pointer structure received by Globals.getSettings() due to Solidity limitation,
         // so we need to create wrapper structure at the same address and then set member
         SettingsWrapper storage wrapper;
@@ -48,11 +38,7 @@ library SettingsInitializer {
         wrapper.settings = _settings;
     }
 
-    function _validateSettings(
-        AssetManagerSettings.Data memory _settings
-    )
-        private pure
-    {
+    function _validateSettings(AssetManagerSettings.Data memory _settings) private pure {
         require(_settings.fAsset != address(0), ZeroAddress());
         require(_settings.agentVaultFactory != address(0), ZeroAddress());
         require(_settings.collateralPoolFactory != address(0), ZeroAddress());
@@ -73,11 +59,11 @@ library SettingsInitializer {
         require(_settings.minUpdateRepeatTimeSeconds > 0, CannotBeZero());
         require(_settings.withdrawalWaitMinSeconds > 0, CannotBeZero());
         require(_settings.averageBlockTimeMS > 0, CannotBeZero());
-        SettingsValidators.validateTimeForPayment(_settings.underlyingBlocksForPayment,
-            _settings.underlyingSecondsForPayment, _settings.averageBlockTimeMS);
+        SettingsValidators.validateTimeForPayment(
+            _settings.underlyingBlocksForPayment, _settings.underlyingSecondsForPayment, _settings.averageBlockTimeMS
+        );
         require(_settings.lotSizeAMG > 0, CannotBeZero());
-        require(_settings.mintingCapAMG == 0 || _settings.mintingCapAMG >= _settings.lotSizeAMG,
-            MintingCapTooSmall());
+        require(_settings.mintingCapAMG == 0 || _settings.mintingCapAMG >= _settings.lotSizeAMG, MintingCapTooSmall());
         require(_settings.collateralReservationFeeBIPS <= SafePct.MAX_BIPS, BipsValueTooHigh());
         require(_settings.redemptionFeeBIPS <= SafePct.MAX_BIPS, BipsValueTooHigh());
         require(_settings.redemptionDefaultFactorVaultCollateralBIPS > SafePct.MAX_BIPS, BipsValueTooLow());
@@ -87,8 +73,9 @@ library SettingsInitializer {
         require(_settings.agentTimelockedOperationWindowSeconds >= 1 hours, ValueTooSmall());
         require(_settings.collateralPoolTokenTimelockSeconds >= 1 minutes, ValueTooSmall());
         require(_settings.liquidationStepSeconds > 0, CannotBeZero());
-        SettingsValidators.validateLiquidationFactors(_settings.liquidationCollateralFactorBIPS,
-            _settings.liquidationFactorVaultCollateralBIPS);
+        SettingsValidators.validateLiquidationFactors(
+            _settings.liquidationCollateralFactorBIPS, _settings.liquidationFactorVaultCollateralBIPS
+        );
         // removed settings
         require(_settings.__whitelist == address(0), MustBeZero());
         require(_settings.__ccbTimeSeconds == 0, MustBeZero());

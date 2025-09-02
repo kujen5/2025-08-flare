@@ -6,7 +6,6 @@ import {AssetManagerBase} from "./AssetManagerBase.sol";
 import {UnderlyingBlockUpdater} from "../library/UnderlyingBlockUpdater.sol";
 import {AssetManagerState} from "../library/data/AssetManagerState.sol";
 
-
 contract UnderlyingTimekeepingFacet is AssetManagerBase {
     /**
      * Prove that a block with given number and timestamp exists and
@@ -17,11 +16,7 @@ contract UnderlyingTimekeepingFacet is AssetManagerBase {
      * NOTE: anybody can call.
      * @param _proof proof that a block with given number and timestamp exists
      */
-    function updateCurrentBlock(
-        IConfirmedBlockHeightExists.Proof calldata _proof
-    )
-        external
-    {
+    function updateCurrentBlock(IConfirmedBlockHeightExists.Proof calldata _proof) external {
         UnderlyingBlockUpdater.updateCurrentBlock(_proof);
     }
 
@@ -32,14 +27,12 @@ contract UnderlyingTimekeepingFacet is AssetManagerBase {
      * @return _lastUpdateTs the timestamp on this chain when the current underlying block was last updated
      */
     function currentUnderlyingBlock()
-        external view
+        external
+        view
         returns (uint256 _blockNumber, uint256 _blockTimestamp, uint256 _lastUpdateTs)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
-        return (
-            state.currentUnderlyingBlock,
-            state.currentUnderlyingBlockTimestamp,
-            state.currentUnderlyingBlockUpdatedAt
-        );
+        return
+            (state.currentUnderlyingBlock, state.currentUnderlyingBlockTimestamp, state.currentUnderlyingBlockUpdatedAt);
     }
 }

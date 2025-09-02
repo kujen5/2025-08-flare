@@ -11,7 +11,6 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 import {IVPToken, IWNat} from "../interfaces/IWNat.sol";
 
-
 contract WNatMock is IWNat, ERC20 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -25,14 +24,7 @@ contract WNatMock is IWNat, ERC20 {
     mapping(address => Delegation[]) private delegations;
     mapping(address delegatee => EnumerableSet.AddressSet) private delegators;
 
-    constructor(
-        address /*_governance*/,
-        string memory _name,
-        string memory _symbol
-    )
-        ERC20(_name, _symbol)
-    {
-    }
+    constructor(address, /*_governance*/ string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
 
     receive() external payable {
         deposit();
@@ -106,16 +98,10 @@ contract WNatMock is IWNat, ERC20 {
         delete delegations[msg.sender];
     }
 
-    function delegatesOf(
-        address _owner
-    )
-        external view
-        returns (
-            address[] memory _delegateAddresses,
-            uint256[] memory _bips,
-            uint256 _count,
-            uint256 _delegationMode
-        )
+    function delegatesOf(address _owner)
+        external
+        view
+        returns (address[] memory _delegateAddresses, uint256[] memory _bips, uint256 _count, uint256 _delegationMode)
     {
         Delegation[] storage ownerDelegations = delegations[_owner];
         _count = ownerDelegations.length;
@@ -128,11 +114,11 @@ contract WNatMock is IWNat, ERC20 {
         _delegationMode = 1; // 1 means delegation by percentage (bips)
     }
 
-    function totalVotePower() external view returns(uint256) {
+    function totalVotePower() external view returns (uint256) {
         return totalSupply();
     }
 
-    function votePowerOf(address _owner) external view returns(uint256 _votePower) {
+    function votePowerOf(address _owner) external view returns (uint256 _votePower) {
         uint256 balance = balanceOf(_owner);
         _votePower = balance;
 
@@ -157,7 +143,7 @@ contract WNatMock is IWNat, ERC20 {
         }
     }
 
-    function undelegatedVotePowerOf(address _owner) external view returns(uint256 _votePower) {
+    function undelegatedVotePowerOf(address _owner) external view returns (uint256 _votePower) {
         uint256 balance = balanceOf(_owner);
         _votePower = balance;
 
@@ -169,7 +155,7 @@ contract WNatMock is IWNat, ERC20 {
         }
     }
 
-    function votePowerFromTo(address _from, address _to) external view returns(uint256) {
+    function votePowerFromTo(address _from, address _to) external view returns (uint256) {
         Delegation[] storage ownerDelegations = delegations[_from];
         for (uint256 i = 0; i < ownerDelegations.length; i++) {
             if (ownerDelegations[i].delegateAddress == _to) {
@@ -181,7 +167,7 @@ contract WNatMock is IWNat, ERC20 {
         return 0; // No delegations found
     }
 
-    function delegationModeOf(address /*_who*/) external pure returns(uint256) {
+    function delegationModeOf(address /*_who*/ ) external pure returns (uint256) {
         // In this mock implementation, we only support delegation by percentage (bips)
         return 1; // 1 means delegations by percentage (bips)
     }
@@ -196,63 +182,68 @@ contract WNatMock is IWNat, ERC20 {
 
     //////// UNIMPLEMENTED METHODS ////////
 
-    function balanceOfAt(address /*_owner*/, uint256 /*_blockNumber*/) external pure returns (uint256) {
+    function balanceOfAt(address, /*_owner*/ uint256 /*_blockNumber*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 
-    function totalSupplyAt(uint256 /*_blockNumber*/) external pure returns(uint256) {
+    function totalSupplyAt(uint256 /*_blockNumber*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 
-    function totalVotePowerAt(uint256 /*_blockNumber*/) external pure returns(uint256) {
+    function totalVotePowerAt(uint256 /*_blockNumber*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 
-    function votePowerFromToAt(address /*_from*/, address /*_to*/, uint256 /*_blockNumber*/)
-        external pure returns(uint256)
+    function votePowerFromToAt(address, /*_from*/ address, /*_to*/ uint256 /*_blockNumber*/ )
+        external
+        pure
+        returns (uint256)
     {
         revert("not implemented");
     }
 
-    function votePowerOfAt(address /*_owner*/, uint256 /*_blockNumber*/) external pure returns(uint256) {
+    function votePowerOfAt(address, /*_owner*/ uint256 /*_blockNumber*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 
-    function votePowerOfAtIgnoringRevocation(address /*_owner*/, uint256 /*_blockNumber*/)
-        external pure returns(uint256)
+    function votePowerOfAtIgnoringRevocation(address, /*_owner*/ uint256 /*_blockNumber*/ )
+        external
+        pure
+        returns (uint256)
     {
         revert("not implemented");
     }
 
-    function delegatesOfAt(address /*_who*/, uint256 /*_blockNumber*/)
-        external pure
+    function delegatesOfAt(address, /*_who*/ uint256 /*_blockNumber*/ )
+        external
+        pure
         returns (
-            address[] memory /*_delegateAddresses*/,
-            uint256[] memory /*_bips*/,
-            uint256 /*_count*/,
+            address[] memory, /*_delegateAddresses*/
+            uint256[] memory, /*_bips*/
+            uint256, /*_count*/
             uint256 /*_delegationMode*/
         )
     {
         revert("not implemented");
     }
 
-    function undelegatedVotePowerOfAt(address /*_owner*/, uint256 /*_blockNumber*/) external pure returns(uint256) {
+    function undelegatedVotePowerOfAt(address, /*_owner*/ uint256 /*_blockNumber*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 
-    function batchDelegate(address[] memory /*_delegatees*/, uint256[] memory /*_bips*/) external pure {
+    function batchDelegate(address[] memory, /*_delegatees*/ uint256[] memory /*_bips*/ ) external pure {
         revert("not implemented");
     }
 
-    function delegateExplicit(address /*_to*/, uint256 /*_amount*/) external pure {
+    function delegateExplicit(address, /*_to*/ uint256 /*_amount*/ ) external pure {
         revert("not implemented");
     }
 
-    function revokeDelegationAt(address /*_who*/, uint256 /*_blockNumber*/) external pure {
+    function revokeDelegationAt(address, /*_who*/ uint256 /*_blockNumber*/ ) external pure {
         revert("not implemented");
     }
 
-    function undelegateAllExplicit(address[] memory /*_delegateAddresses*/) external pure returns (uint256) {
+    function undelegateAllExplicit(address[] memory /*_delegateAddresses*/ ) external pure returns (uint256) {
         revert("not implemented");
     }
 

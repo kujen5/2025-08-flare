@@ -5,7 +5,6 @@ import {IICleanable} from "@flarenetwork/flare-periphery-contracts/flare/token/i
 import {IFAsset} from "../../userInterfaces/IFAsset.sol";
 import {IICheckPointable} from "./IICheckPointable.sol";
 
-
 interface IIFAsset is IFAsset, IICheckPointable, IICleanable {
     /**
      * Mints `_amount` od fAsset.

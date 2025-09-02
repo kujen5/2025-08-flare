@@ -9,15 +9,10 @@ import {CollateralTypeInt} from "./data/CollateralTypeInt.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 import {Agents} from "./Agents.sol";
 
-
 library AgentPayout {
     using Agent for Agent.State;
 
-    function payoutFromVault(
-        Agent.State storage _agent,
-        address _receiver,
-        uint256 _amountWei
-    )
+    function payoutFromVault(Agent.State storage _agent, address _receiver, uint256 _amountWei)
         internal
         returns (uint256 _amountPaid)
     {
@@ -28,11 +23,7 @@ library AgentPayout {
         vault.payout(collateral.token, _receiver, _amountPaid);
     }
 
-    function tryPayoutFromVault(
-        Agent.State storage _agent,
-        address _receiver,
-        uint256 _amountWei
-    )
+    function tryPayoutFromVault(Agent.State storage _agent, address _receiver, uint256 _amountWei)
         internal
         returns (bool _success, uint256 _amountPaid)
     {
@@ -53,10 +44,7 @@ library AgentPayout {
         address _receiver,
         uint256 _amountWei,
         uint256 _agentResponsibilityWei
-    )
-        internal
-        returns (uint256 _amountPaid)
-    {
+    ) internal returns (uint256 _amountPaid) {
         // don't want the calling method to fail due to too small balance for payout
         uint256 poolBalance = _agent.collateralPool.totalCollateral();
         _amountPaid = Math.min(_amountWei, poolBalance);
@@ -64,12 +52,7 @@ library AgentPayout {
         _agent.collateralPool.payout(_receiver, _amountPaid, _agentResponsibilityWei);
     }
 
-    function payForConfirmationByOthers(
-        Agent.State storage _agent,
-        address _receiver
-    )
-        internal
-    {
+    function payForConfirmationByOthers(Agent.State storage _agent, address _receiver) internal {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         uint256 amount = Agents.convertUSD5ToVaultCollateralWei(_agent, settings.confirmationByOthersRewardUSD5);
         payoutFromVault(_agent, _receiver, amount);

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-
 library PaymentReference {
     uint256 private constant TYPE_SHIFT = 192;
     uint256 private constant TYPE_MASK = ((1 << 64) - 1) << TYPE_SHIFT;

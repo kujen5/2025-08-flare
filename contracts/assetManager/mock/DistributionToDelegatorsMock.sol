@@ -16,8 +16,9 @@ contract DistributionToDelegatorsMock {
 
     receive() external payable {}
 
-    function claim(address /* _rewardOwner */, address _recipient, uint256 /* _month */, bool _wrap)
-        external returns(uint256 _rewardAmount)
+    function claim(address, /* _rewardOwner */ address _recipient, uint256, /* _month */ bool _wrap)
+        external
+        returns (uint256 _rewardAmount)
     {
         uint256 reward = 1 ether;
         if (_wrap) {
@@ -26,7 +27,7 @@ contract DistributionToDelegatorsMock {
             wNat.withdraw(reward);
             /* solhint-disable avoid-low-level-calls */
             //slither-disable-next-line arbitrary-send-eth
-            (bool success, ) = _recipient.call{value: reward}("");
+            (bool success,) = _recipient.call{value: reward}("");
             /* solhint-enable avoid-low-level-calls */
             require(success, "transfer failed");
         }
@@ -36,5 +37,4 @@ contract DistributionToDelegatorsMock {
     function optOutOfAirdrop() external {
         emit OptedOutOfAirdrop(msg.sender);
     }
-
 }

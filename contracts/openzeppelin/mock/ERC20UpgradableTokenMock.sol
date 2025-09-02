@@ -12,9 +12,7 @@ contract ERC20UpgradableTokenMock is ERC20, UUPSUpgradeable {
     string private _symbol;
     bool private _initialized;
 
-    constructor(string memory name_, string memory symbol_)
-        ERC20("", "")
-    {
+    constructor(string memory name_, string memory symbol_) ERC20("", "") {
         initialize(name_, symbol_);
     }
 

@@ -27,7 +27,8 @@ library SafePct {
         if (x == 0) return 0;
         unchecked {
             uint256 xy = x * y;
-            if (xy / x == y) { // no overflow happened (works in unchecked)
+            if (xy / x == y) {
+                // no overflow happened (works in unchecked)
                 return xy / z;
             }
         }

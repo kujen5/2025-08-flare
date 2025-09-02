@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import { IGovernanceSettings, GovernedBase } from "./GovernedBase.sol";
-
+import {IGovernanceSettings, GovernedBase} from "./GovernedBase.sol";
 
 /**
  * Base class for proxy implementations or diamond facets that expose governed methods -
@@ -10,7 +9,8 @@ import { IGovernanceSettings, GovernedBase } from "./GovernedBase.sol";
  *
  * The GovernedBase.initialise can later be called only through a proxy. It should be
  * called through proxy constructor or in diamond cut initializer.
- **/
+ *
+ */
 abstract contract GovernedProxyImplementation is GovernedBase {
     address private constant EMPTY_ADDRESS = 0x0000000000000000000000000000000000001111;
 

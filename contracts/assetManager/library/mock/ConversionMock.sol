@@ -9,7 +9,8 @@ import {Globals} from "../Globals.sol";
 /**
  * @title Conversion mock contract
  * @notice A contract to expose the Conversion library for unit testing.
- **/
+ *
+ */
 contract ConversionMock {
     function setAssetDecimals(uint256 assetDecimals, uint256 assetMintingDecimals) external {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -19,11 +20,16 @@ contract ConversionMock {
         settings.assetMintingGranularityUBA = SafeCast.toUint64(10 ** (assetDecimals - assetMintingDecimals));
     }
 
-    function calcAmgToTokenWeiPrice(uint256 _tokenDecimals, uint256 _tokenPrice, uint256 _tokenFtsoDecimals,
-        uint256 _assetPrice, uint256 _assetFtsoDecimals
+    function calcAmgToTokenWeiPrice(
+        uint256 _tokenDecimals,
+        uint256 _tokenPrice,
+        uint256 _tokenFtsoDecimals,
+        uint256 _assetPrice,
+        uint256 _assetFtsoDecimals
     ) external view returns (uint256) {
-        return Conversion.calcAmgToTokenWeiPrice(_tokenDecimals, _tokenPrice, _tokenFtsoDecimals,
-            _assetPrice, _assetFtsoDecimals);
+        return Conversion.calcAmgToTokenWeiPrice(
+            _tokenDecimals, _tokenPrice, _tokenFtsoDecimals, _assetPrice, _assetFtsoDecimals
+        );
     }
 
     function convertAmgToTokenWei(uint256 _valueAMG, uint256 _amgToNATWeiPrice) external pure returns (uint256) {

@@ -16,12 +16,11 @@ import {CollateralReservationInfo} from "../../userInterfaces/data/CollateralRes
 import {RedemptionRequestInfo} from "../../userInterfaces/data/RedemptionRequestInfo.sol";
 import {RedemptionTicketInfo} from "../../userInterfaces/data/RedemptionTicketInfo.sol";
 
-
 contract SystemInfoFacet is AssetManagerBase {
     /**
      * When `controllerAttached` is true, asset manager has been added to the asset manager controller.
      */
-    function controllerAttached() external view  returns (bool) {
+    function controllerAttached() external view returns (bool) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.attached;
     }
@@ -29,10 +28,7 @@ contract SystemInfoFacet is AssetManagerBase {
     /**
      * True if asset manager is paused.
      */
-    function mintingPaused()
-        external view
-        returns (bool)
-    {
+    function mintingPaused() external view returns (bool) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.mintingPausedAt != 0;
     }
@@ -45,11 +41,9 @@ contract SystemInfoFacet is AssetManagerBase {
      * @return _nextRedemptionTicketId works as a cursor - if the _pageSize is reached and there are more tickets,
      *  it is the first ticket id not returned; if the end is reached, it is 0
      */
-    function redemptionQueue(
-        uint256 _firstRedemptionTicketId,
-        uint256 _pageSize
-    )
-        external view
+    function redemptionQueue(uint256 _firstRedemptionTicketId, uint256 _pageSize)
+        external
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId)
     {
         return RedemptionQueueInfo.redemptionQueue(_firstRedemptionTicketId, _pageSize);
@@ -64,21 +58,17 @@ contract SystemInfoFacet is AssetManagerBase {
      * @return _nextRedemptionTicketId works as a cursor - if the _pageSize is reached and there are more tickets,
      *  it is the first ticket id not returned; if the end is reached, it is 0
      */
-    function agentRedemptionQueue(
-        address _agentVault,
-        uint256 _firstRedemptionTicketId,
-        uint256 _pageSize
-    )
-        external view
+    function agentRedemptionQueue(address _agentVault, uint256 _firstRedemptionTicketId, uint256 _pageSize)
+        external
+        view
         returns (RedemptionTicketInfo.Data[] memory _queue, uint256 _nextRedemptionTicketId)
     {
         return RedemptionQueueInfo.agentRedemptionQueue(_agentVault, _firstRedemptionTicketId, _pageSize);
     }
 
-    function collateralReservationInfo(
-        uint256 _collateralReservationId
-    )
-        external view
+    function collateralReservationInfo(uint256 _collateralReservationId)
+        external
+        view
         returns (CollateralReservationInfo.Data memory)
     {
         uint64 crtId = SafeCast.toUint64(_collateralReservationId);
@@ -103,10 +93,9 @@ contract SystemInfoFacet is AssetManagerBase {
         });
     }
 
-    function redemptionRequestInfo(
-        uint256 _redemptionRequestId
-    )
-        external view
+    function redemptionRequestInfo(uint256 _redemptionRequestId)
+        external
+        view
         returns (RedemptionRequestInfo.Data memory)
     {
         uint64 requestId = SafeCast.toUint64(_redemptionRequestId);
@@ -133,7 +122,8 @@ contract SystemInfoFacet is AssetManagerBase {
     }
 
     function _convertCollateralReservationStatus(CollateralReservation.Status _status)
-        private pure
+        private
+        pure
         returns (CollateralReservationInfo.Status)
     {
         if (_status == CollateralReservation.Status.ACTIVE) {
@@ -148,10 +138,7 @@ contract SystemInfoFacet is AssetManagerBase {
         }
     }
 
-    function _convertRedemptionStatus(Redemption.Status _status)
-        private pure
-        returns (RedemptionRequestInfo.Status)
-    {
+    function _convertRedemptionStatus(Redemption.Status _status) private pure returns (RedemptionRequestInfo.Status) {
         if (_status == Redemption.Status.ACTIVE) {
             return RedemptionRequestInfo.Status.ACTIVE;
         } else if (_status == Redemption.Status.DEFAULTED) {

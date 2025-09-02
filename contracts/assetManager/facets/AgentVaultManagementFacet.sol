@@ -26,7 +26,6 @@ import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol"
 import {ICollateralPool} from "../../userInterfaces/ICollateralPool.sol";
 import {ICollateralPoolToken} from "../../userInterfaces/ICollateralPoolToken.sol";
 
-
 contract AgentVaultManagementFacet is AssetManagerBase {
     using SafeCast for uint256;
     using UnderlyingAddressOwnership for UnderlyingAddressOwnership.State;
@@ -53,10 +52,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
      * NOTE: may only be called by a whitelisted agent
      * @return _agentVault the new agent vault address
      */
-    function createAgentVault(
-        IAddressValidity.Proof calldata _addressProof,
-        AgentSettings.Data calldata _settings
-    )
+    function createAgentVault(IAddressValidity.Proof calldata _addressProof, AgentSettings.Data calldata _settings)
         external
         onlyAttached
         returns (address _agentVault)
@@ -80,7 +76,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         IIAgentVault agentVault = agentVaultFactory.create(assetManager);
         // set initial status
         Agent.State storage agent = Agent.getWithoutCheck(address(agentVault));
-        assert(agent.status == Agent.Status.EMPTY);     // state should be empty on creation
+        assert(agent.status == Agent.Status.EMPTY); // state should be empty on creation
         agent.status = Agent.Status.NORMAL;
         agent.ownerManagementAddress = ownerManagementAddress;
         // set collateral token types
@@ -109,8 +105,9 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         agent.allAgentsPos = state.allAgents.length.toUint32();
         state.allAgents.push(address(agentVault));
         // notify
-        _emitAgentVaultCreated(ownerManagementAddress, address(agentVault), agent.collateralPool,
-            avb.standardAddress, _settings);
+        _emitAgentVaultCreated(
+            ownerManagementAddress, address(agentVault), agent.collateralPool, avb.standardAddress, _settings
+        );
         return address(agentVault);
     }
 
@@ -120,9 +117,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
      * NOTE: may only be called by the agent vault owner.
      * @return _destroyAllowedAt the timestamp at which the destroy can be executed
      */
-    function announceDestroyAgent(
-        address _agentVault
-    )
+    function announceDestroyAgent(address _agentVault)
         external
         onlyAgentVaultOwner(_agentVault)
         returns (uint256 _destroyAllowedAt)
@@ -154,13 +149,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
      * @param _agentVault address of the agent's vault to destroy
      * @param _recipient address that receives the remaining funds and possible vault balance
      */
-    function destroyAgent(
-        address _agentVault,
-        address payable _recipient
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function destroyAgent(address _agentVault, address payable _recipient) external onlyAgentVaultOwner(_agentVault) {
         AssetManagerState.State storage state = AssetManagerState.get();
         Agent.State storage agent = Agent.get(_agentVault);
         // destroy must have been announced enough time before
@@ -194,12 +183,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
      * @param _agentVault address of the agent's vault; both vault, its corresponding pool, and
      *  its pool token will be upgraded to the newest implementations
      */
-    function upgradeAgentVaultAndPool(
-        address _agentVault
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function upgradeAgentVaultAndPool(address _agentVault) external onlyAgentVaultOwner(_agentVault) {
         _upgradeAgentVaultAndPool(_agentVault);
     }
 
@@ -214,38 +198,25 @@ contract AgentVaultManagementFacet is AssetManagerBase {
      * @param _end the end index (exclusive) of the list of agent vaults to upgrade;
      *  can be larger then the number of agents, if gas is not an issue
      */
-    function upgradeAgentVaultsAndPools(
-        uint256 _start,
-        uint256 _end
-    )
-        external
-        onlyAssetManagerController
-    {
+    function upgradeAgentVaultsAndPools(uint256 _start, uint256 _end) external onlyAssetManagerController {
         (address[] memory _agents,) = Agents.getAllAgents(_start, _end);
         for (uint256 i = 0; i < _agents.length; i++) {
             _upgradeAgentVaultAndPool(_agents[i]);
         }
     }
 
-    function _upgradeAgentVaultAndPool(address _agentVault)
-        private
-    {
+    function _upgradeAgentVaultAndPool(address _agentVault) private {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         ICollateralPool collateralPool = Agent.get(_agentVault).collateralPool;
         ICollateralPoolToken collateralPoolToken = collateralPool.poolToken();
         _upgradeContract(IIAgentVaultFactory(settings.agentVaultFactory), _agentVault);
-        _upgradeContract(IICollateralPoolFactory(settings.collateralPoolFactory),
-            address(collateralPool));
-        _upgradeContract(IICollateralPoolTokenFactory(settings.collateralPoolTokenFactory),
-            address(collateralPoolToken));
+        _upgradeContract(IICollateralPoolFactory(settings.collateralPoolFactory), address(collateralPool));
+        _upgradeContract(
+            IICollateralPoolTokenFactory(settings.collateralPoolTokenFactory), address(collateralPoolToken)
+        );
     }
 
-    function _upgradeContract(
-        IUpgradableContractFactory _factory,
-        address _proxyAddress
-    )
-        private
-    {
+    function _upgradeContract(IUpgradableContractFactory _factory, address _proxyAddress) private {
         IUpgradableProxy proxy = IUpgradableProxy(_proxyAddress);
         address newImplementation = _factory.implementation();
         address currentImplementation = proxy.implementation();
@@ -263,13 +234,9 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         IIAssetManager _assetManager,
         address _agentVault,
         AgentSettings.Data calldata _settings
-    )
-        private
-        returns (IICollateralPool)
-    {
+    ) private returns (IICollateralPool) {
         AssetManagerSettings.Data storage globalSettings = Globals.getSettings();
-        IICollateralPoolFactory collateralPoolFactory =
-            IICollateralPoolFactory(globalSettings.collateralPoolFactory);
+        IICollateralPoolFactory collateralPoolFactory = IICollateralPoolFactory(globalSettings.collateralPoolFactory);
         IICollateralPoolTokenFactory poolTokenFactory =
             IICollateralPoolTokenFactory(globalSettings.collateralPoolTokenFactory);
         IICollateralPool collateralPool = collateralPoolFactory.create(_assetManager, _agentVault, _settings);
@@ -279,9 +246,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         return collateralPool;
     }
 
-    function _reserveAndValidatePoolTokenSuffix(string memory _suffix)
-        private
-    {
+    function _reserveAndValidatePoolTokenSuffix(string memory _suffix) private {
         AssetManagerState.State storage state = AssetManagerState.get();
         // reserve unique suffix
         require(!state.reservedPoolTokenSuffixes[_suffix], SuffixReserved());
@@ -294,8 +259,10 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         for (uint256 i = 0; i < len; i++) {
             bytes1 ch = suffixb[i];
             // allow A-Z, 0-9 and '-' (but not at start or end)
-            require((ch >= "A" && ch <= "Z") || (ch >= "0" && ch <= "9") || (i > 0 && i < len - 1 && ch == "-"),
-                SuffixInvalidFormat());
+            require(
+                (ch >= "A" && ch <= "Z") || (ch >= "0" && ch <= "9") || (i > 0 && i < len - 1 && ch == "-"),
+                SuffixInvalidFormat()
+            );
         }
     }
 
@@ -307,9 +274,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
         IICollateralPool _collateralPool,
         string memory _underlyingAddress,
         AgentSettings.Data calldata _settings
-    )
-        private
-    {
+    ) private {
         IAssetManagerEvents.AgentVaultCreationData memory data;
         data.collateralPool = address(_collateralPool);
         data.collateralPoolToken = address(_collateralPool.poolToken());
@@ -327,10 +292,7 @@ contract AgentVaultManagementFacet is AssetManagerBase {
     }
 
     // Returns management owner's address, given either work or management address.
-    function _getManagementAddress(address _ownerAddress)
-        private view
-        returns (address)
-    {
+    function _getManagementAddress(address _ownerAddress) private view returns (address) {
         address ownerManagementAddress = Globals.getAgentOwnerRegistry().getManagementAddress(_ownerAddress);
         return ownerManagementAddress != address(0) ? ownerManagementAddress : _ownerAddress;
     }

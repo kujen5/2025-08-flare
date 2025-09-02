@@ -9,7 +9,6 @@ import {IRelay} from "@flarenetwork/flare-periphery-contracts/flare/IRelay.sol";
 
 // solhint-disable func-name-mixedcase
 contract FtsoV2PriceStoreTest is Test {
-
     FtsoV2PriceStore private ftsoV2PriceStoreImpl;
     FtsoV2PriceStore private ftsoV2PriceStore;
     FtsoV2PriceStoreProxy private ftsoV2PriceStoreProxy;
@@ -73,9 +72,7 @@ contract FtsoV2PriceStoreTest is Test {
         bytes21[4] memory feedIdSeeds,
         uint256[4] memory trustedValueSeeds,
         uint256 ts
-    )
-        public
-    {
+    ) public {
         uint8 numFeeds = 4;
         _setFeeds(numFeeds, decimalSeeds, feedIdSeeds);
 
@@ -84,8 +81,7 @@ contract FtsoV2PriceStoreTest is Test {
         uint256 startTimestamp = _getEndTimestamp(votingRoundId);
         vm.warp(startTimestamp + 1);
 
-        IPricePublisher.TrustedProviderFeed[] memory trustedFeeds =
-            new IPricePublisher.TrustedProviderFeed[](numFeeds);
+        IPricePublisher.TrustedProviderFeed[] memory trustedFeeds = new IPricePublisher.TrustedProviderFeed[](numFeeds);
         for (uint256 i = 0; i < numFeeds; i++) {
             trustedFeeds[i] = IPricePublisher.TrustedProviderFeed({
                 id: feedIds[i],
@@ -100,8 +96,8 @@ contract FtsoV2PriceStoreTest is Test {
         vm.prank(makeAddr("trustedProvider"));
         ftsoV2PriceStore.submitTrustedPrices(votingRoundId, trustedFeeds);
 
-        votingRoundId = uint32(bound(votingRoundId, ftsoV2PriceStore.lastPublishedVotingRoundId() + 1,
-            type(uint32).max));
+        votingRoundId =
+            uint32(bound(votingRoundId, ftsoV2PriceStore.lastPublishedVotingRoundId() + 1, type(uint32).max));
 
         uint256 endTimestamp = _getEndTimestamp(votingRoundId);
         vm.warp(endTimestamp + ftsoV2PriceStore.submitTrustedPricesWindowSeconds() + 1);
@@ -111,7 +107,7 @@ contract FtsoV2PriceStoreTest is Test {
 
         IPricePublisher.FeedWithProof[] memory proofs = new IPricePublisher.FeedWithProof[](numFeeds);
         for (uint256 i = 0; i < numFeeds; i++) {
-            values[i] = uint32(bound(valueSeeds[i], 0, type(uint32).max/2));
+            values[i] = uint32(bound(valueSeeds[i], 0, type(uint32).max / 2));
             decimals[i] = int8(bound(decimalSeeds[i], -18, 18)); // common decimal range
 
             IPricePublisher.Feed memory feed = IPricePublisher.Feed({
@@ -155,7 +151,7 @@ contract FtsoV2PriceStoreTest is Test {
             assertEq(priceDecimals, uintDecimals);
             assertEq(timestamp, endTimestamp);
 
-            (uint256 trustedPrice, , uint256 trustedDecimal, uint8 numOfSubmits) =
+            (uint256 trustedPrice,, uint256 trustedDecimal, uint8 numOfSubmits) =
                 ftsoV2PriceStore.getPriceFromTrustedProvidersWithQuality(symbols[i]);
             decimal = trustedDecimals[i];
             value = trustedFeeds[i].value;
@@ -171,30 +167,23 @@ contract FtsoV2PriceStoreTest is Test {
         }
     }
 
-    function _getEndTimestamp(uint256 _votingEpochId) internal view returns(uint256) {
+    function _getEndTimestamp(uint256 _votingEpochId) internal view returns (uint256) {
         return firstVotingRoundStartTs + (_votingEpochId + 1) * votingEpochDurationSeconds;
     }
 
-    function _setFeeds(
-        uint8 _numFeeds,
-        int8[4] memory decimalSeeds,
-        bytes21[4] memory feedIdSeeds
-    )
-        internal
-    {
+    function _setFeeds(uint8 _numFeeds, int8[4] memory decimalSeeds, bytes21[4] memory feedIdSeeds) internal {
         // generate dynamic feedIds, symbols, and trustedDecimals
         feedIds = new bytes21[](_numFeeds);
         symbols = new string[](_numFeeds);
         trustedDecimals = new int8[](_numFeeds);
         for (uint256 i = 0; i < _numFeeds; i++) {
             feedIds[i] = bytes21(keccak256(abi.encode(feedIdSeeds[i], i)));
-            symbols[i] =  string.concat("symbol", vm.toString(i));
+            symbols[i] = string.concat("symbol", vm.toString(i));
             trustedDecimals[i] = int8(bound(decimalSeeds[i], -18, 18)); // Common decimal range
         }
         vm.prank(governance);
         ftsoV2PriceStore.updateSettings(feedIds, symbols, trustedDecimals, 500);
     }
-
 
     function _calculateRoot(bytes32[] memory _treeLeaves) public returns (bytes32) {
         bytes32 h12 = _hashPair(_treeLeaves[0], _treeLeaves[1]);
@@ -225,7 +214,7 @@ contract FtsoV2PriceStoreTest is Test {
         return a < b ? keccak256(abi.encodePacked(a, b)) : keccak256(abi.encodePacked(b, a));
     }
 
-    function _getPreviousVotingEpochId() internal view returns(uint32) {
+    function _getPreviousVotingEpochId() internal view returns (uint32) {
         return uint32((block.timestamp - firstVotingRoundStartTs) / votingEpochDurationSeconds) - 1;
     }
 }

@@ -18,7 +18,6 @@ import {CollateralTypeInt} from "../library/data/CollateralTypeInt.sol";
 import {IICollateralPool} from "../../collateralPool/interfaces/IICollateralPool.sol";
 import {AgentInfo} from "../../userInterfaces/data/AgentInfo.sol";
 
-
 contract AgentInfoFacet is AssetManagerBase {
     using SafeCast for uint256;
     using AgentCollateral for Collateral.CombinedData;
@@ -31,11 +30,9 @@ contract AgentInfoFacet is AssetManagerBase {
      * @param _start first index to return from the available agent's list
      * @param _end end index (one above last) to return from the available agent's list
      */
-    function getAllAgents(
-        uint256 _start,
-        uint256 _end
-    )
-        external view
+    function getAllAgents(uint256 _start, uint256 _end)
+        external
+        view
         returns (address[] memory _agents, uint256 _totalLength)
     {
         return Agents.getAllAgents(_start, _end);
@@ -45,10 +42,7 @@ contract AgentInfoFacet is AssetManagerBase {
      * Check if the collateral pool token has been used already by some vault.
      * @param _suffix the suffix to check
      */
-    function isPoolTokenSuffixReserved(string memory _suffix)
-        external view
-        returns (bool)
-    {
+    function isPoolTokenSuffixReserved(string memory _suffix) external view returns (bool) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.reservedPoolTokenSuffixes[_suffix];
     }
@@ -59,12 +53,7 @@ contract AgentInfoFacet is AssetManagerBase {
      * @return _info structure containing agent's minting fee (BIPS), min collateral ratio (BIPS),
      *      and current free collateral (lots)
      */
-    function getAgentInfo(
-        address _agentVault
-    )
-        external view
-        returns (AgentInfo.Info memory _info)
-    {
+    function getAgentInfo(address _agentVault) external view returns (AgentInfo.Info memory _info) {
         Agent.State storage agent = Agent.getAllowDestroyed(_agentVault);
         Collateral.CombinedData memory collateralData = AgentCollateral.combinedData(agent);
         CollateralTypeInt.Data storage collateral = agent.getVaultCollateral();
@@ -95,65 +84,48 @@ contract AgentInfoFacet is AssetManagerBase {
         _info.poolCollateralRatioBIPS = cr.poolCR;
         _info.totalAgentPoolTokensWei = collateralData.agentPoolTokens.fullCollateral;
         _info.freeAgentPoolTokensWei = collateralData.agentPoolTokens.freeCollateralWei(agent);
-        _info.announcedVaultCollateralWithdrawalWei =
-            agent.withdrawalAnnouncement(Collateral.Kind.VAULT).amountWei;
-        _info.announcedPoolTokensWithdrawalWei =
-            agent.withdrawalAnnouncement(Collateral.Kind.AGENT_POOL).amountWei;
+        _info.announcedVaultCollateralWithdrawalWei = agent.withdrawalAnnouncement(Collateral.Kind.VAULT).amountWei;
+        _info.announcedPoolTokensWithdrawalWei = agent.withdrawalAnnouncement(Collateral.Kind.AGENT_POOL).amountWei;
         _info.mintedUBA = Conversion.convertAmgToUBA(agent.mintedAMG);
         _info.reservedUBA = Conversion.convertAmgToUBA(agent.reservedAMG);
         _info.redeemingUBA = Conversion.convertAmgToUBA(agent.redeemingAMG);
         _info.poolRedeemingUBA = Conversion.convertAmgToUBA(agent.poolRedeemingAMG);
         _info.dustUBA = Conversion.convertAmgToUBA(agent.dustAMG);
         _info.liquidationStartTimestamp = agent.liquidationStartedAt;
-        (_info.liquidationPaymentFactorVaultBIPS, _info.liquidationPaymentFactorPoolBIPS,
-            _info.maxLiquidationAmountUBA) = _getLiquidationFactorsAndMaxAmount(agent, cr);
+        (_info.liquidationPaymentFactorVaultBIPS, _info.liquidationPaymentFactorPoolBIPS, _info.maxLiquidationAmountUBA)
+        = _getLiquidationFactorsAndMaxAmount(agent, cr);
         _info.underlyingBalanceUBA = agent.underlyingBalanceUBA;
         _info.requiredUnderlyingBalanceUBA = UnderlyingBalance.requiredUnderlyingUBA(agent);
-        _info.freeUnderlyingBalanceUBA =
-            _info.underlyingBalanceUBA - _info.requiredUnderlyingBalanceUBA.toInt256();
+        _info.freeUnderlyingBalanceUBA = _info.underlyingBalanceUBA - _info.requiredUnderlyingBalanceUBA.toInt256();
         _info.announcedUnderlyingWithdrawalId = agent.announcedUnderlyingWithdrawalId;
         _info.buyFAssetByAgentFactorBIPS = agent.buyFAssetByAgentFactorBIPS;
         _info.poolExitCollateralRatioBIPS = agent.collateralPool.exitCollateralRatioBIPS();
         _info.redemptionPoolFeeShareBIPS = agent.redemptionPoolFeeShareBIPS;
     }
 
-    function getCollateralPool(address _agentVault)
-        external view
-        returns (address)
-    {
+    function getCollateralPool(address _agentVault) external view returns (address) {
         return address(Agent.getAllowDestroyed(_agentVault).collateralPool);
     }
 
-    function getAgentVaultOwner(address _agentVault)
-        external view
-        returns (address _ownerManagementAddress)
-    {
+    function getAgentVaultOwner(address _agentVault) external view returns (address _ownerManagementAddress) {
         return Agent.getAllowDestroyed(_agentVault).ownerManagementAddress;
     }
 
-    function getAgentVaultCollateralToken(address _agentVault)
-        external view
-        returns (IERC20)
-    {
+    function getAgentVaultCollateralToken(address _agentVault) external view returns (IERC20) {
         return Agent.get(_agentVault).getVaultCollateral().token;
     }
 
-    function getAgentFullVaultCollateral(address _agentVault)
-        external view
-        returns (uint256)
-    {
+    function getAgentFullVaultCollateral(address _agentVault) external view returns (uint256) {
         return _getFullCollateral(_agentVault, Collateral.Kind.VAULT);
     }
 
-    function getAgentFullPoolCollateral(address _agentVault)
-        external view
-        returns (uint256)
-    {
+    function getAgentFullPoolCollateral(address _agentVault) external view returns (uint256) {
         return _getFullCollateral(_agentVault, Collateral.Kind.POOL);
     }
 
     function getAgentLiquidationFactorsAndMaxAmount(address _agentVault)
-        external view
+        external
+        view
         returns (
             uint256 _liquidationPaymentFactorVaultBIPS,
             uint256 _liquidationPaymentFactorPoolBIPS,
@@ -165,43 +137,29 @@ contract AgentInfoFacet is AssetManagerBase {
         return _getLiquidationFactorsAndMaxAmount(agent, cr);
     }
 
-    function getAgentMinPoolCollateralRatioBIPS(address _agentVault)
-        external view
-        returns (uint256)
-    {
+    function getAgentMinPoolCollateralRatioBIPS(address _agentVault) external view returns (uint256) {
         return _getMinCollateralRatioBIPS(_agentVault, Collateral.Kind.POOL);
     }
 
-    function getAgentMinVaultCollateralRatioBIPS(address _agentVault)
-        external view
-        returns (uint256)
-    {
+    function getAgentMinVaultCollateralRatioBIPS(address _agentVault) external view returns (uint256) {
         return _getMinCollateralRatioBIPS(_agentVault, Collateral.Kind.VAULT);
     }
 
-    function _getFullCollateral(address _agentVault, Collateral.Kind _kind)
-        private view
-        returns (uint256)
-    {
+    function _getFullCollateral(address _agentVault, Collateral.Kind _kind) private view returns (uint256) {
         Agent.State storage agent = Agent.get(_agentVault);
         Collateral.Data memory collateral = AgentCollateral.singleCollateralData(agent, _kind);
         return collateral.fullCollateral;
     }
 
-    function _getMinCollateralRatioBIPS(address _agentVault, Collateral.Kind _kind)
-        private view
-        returns (uint256)
-    {
+    function _getMinCollateralRatioBIPS(address _agentVault, Collateral.Kind _kind) private view returns (uint256) {
         Agent.State storage agent = Agent.get(_agentVault);
         (, uint256 sysMinCR) = AgentCollateral.mintingMinCollateralRatio(agent, _kind);
         return sysMinCR;
     }
 
-    function _getLiquidationFactorsAndMaxAmount(
-        Agent.State storage _agent,
-        Liquidation.CRData memory _cr
-    )
-        private view
+    function _getLiquidationFactorsAndMaxAmount(Agent.State storage _agent, Liquidation.CRData memory _cr)
+        private
+        view
         returns (uint256 _vaultFactorBIPS, uint256 _poolFactorBIPS, uint256 _maxLiquidatedUBA)
     {
         Agent.Status agentStatus = _agent.status;
@@ -214,7 +172,8 @@ contract AgentInfoFacet is AssetManagerBase {
         // calculate liquidation amount
         uint256 maxLiquidatedAMG = Math.max(
             Liquidation.maxLiquidationAmountAMG(_agent, _cr.vaultCR, _vaultFactorBIPS, Collateral.Kind.VAULT),
-            Liquidation.maxLiquidationAmountAMG(_agent, _cr.poolCR, _poolFactorBIPS, Collateral.Kind.POOL));
+            Liquidation.maxLiquidationAmountAMG(_agent, _cr.poolCR, _poolFactorBIPS, Collateral.Kind.POOL)
+        );
         _maxLiquidatedUBA = Conversion.convertAmgToUBA(maxLiquidatedAMG.toUint64());
     }
 }

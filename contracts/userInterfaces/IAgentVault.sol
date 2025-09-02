@@ -5,7 +5,6 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ICollateralPool} from "./ICollateralPool.sol";
 
-
 interface IAgentVault {
     error OnlyOwner();
     error OnlyAssetManager();
@@ -73,7 +72,5 @@ interface IAgentVault {
      * Get the address of the collateral pool contract corresponding to this agent vault
      * (there is 1:1 correspondence between agent vault and collateral pools).
      */
-    function collateralPool()
-        external view
-        returns (ICollateralPool);
+    function collateralPool() external view returns (ICollateralPool);
 }

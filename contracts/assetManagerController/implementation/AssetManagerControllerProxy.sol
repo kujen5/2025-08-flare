@@ -5,7 +5,6 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 import {AssetManagerController} from "./AssetManagerController.sol";
 
-
 contract AssetManagerControllerProxy is ERC1967Proxy {
     constructor(
         address _implementationAddress,
@@ -13,12 +12,9 @@ contract AssetManagerControllerProxy is ERC1967Proxy {
         address _initialGovernance,
         address _addressUpdater
     )
-        ERC1967Proxy(_implementationAddress,
-            abi.encodeCall(
-                AssetManagerController.initialize,
-                (_governanceSettings, _initialGovernance, _addressUpdater)
-            )
+        ERC1967Proxy(
+            _implementationAddress,
+            abi.encodeCall(AssetManagerController.initialize, (_governanceSettings, _initialGovernance, _addressUpdater))
         )
-    {
-    }
+    {}
 }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-
 library MerkleTree {
     // Additional variables to avoid stack too deep error
     struct State {
@@ -24,12 +23,7 @@ library MerkleTree {
     /// Instead of actually constructing the tree the following recursive algorithm is used:
     /// merkleRoot(tree) = sortedHash(merkleRoot(leftSubTree(tree)), merkleRoot(rightSubTree(tree)))
     /// The algorithm is essentially an iterative version of the recursive algorithm using a stack.
-    function calculateMerkleRoot(
-        bytes32[] memory leaves
-    )
-        internal pure
-        returns (bytes32 root)
-    {
+    function calculateMerkleRoot(bytes32[] memory leaves) internal pure returns (bytes32 root) {
         require(leaves.length > 0, NoLeaves());
         if (leaves.length == 1) {
             return leaves[0];
@@ -81,16 +75,9 @@ library MerkleTree {
                 arrayPtr = 0;
                 arrayLength = leftStart;
             }
-            while (
-                arrayPtr < arrayLength ||
-                (stackTop > 1 &&
-                    levelStack[stackTop - 1] == levelStack[stackTop - 2])
-            ) {
+            while (arrayPtr < arrayLength || (stackTop > 1 && levelStack[stackTop - 1] == levelStack[stackTop - 2])) {
                 // prioritize merging top of stack if the same level
-                if (
-                    stackTop > 1 &&
-                    levelStack[stackTop - 1] == levelStack[stackTop - 2]
-                ) {
+                if (stackTop > 1 && levelStack[stackTop - 1] == levelStack[stackTop - 2]) {
                     // swap the top of the stack - needed for correct hashing order
                     if (hashStack[stackTop - 1] < hashStack[stackTop - 2]) {
                         (hashStack[stackTop - 1], hashStack[stackTop - 2]) =

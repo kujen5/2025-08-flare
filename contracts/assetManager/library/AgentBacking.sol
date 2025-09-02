@@ -9,25 +9,15 @@ import {Agent} from "./data/Agent.sol";
 import {RedemptionQueue} from "./data/RedemptionQueue.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 
-
 library AgentBacking {
     using Agent for Agent.State;
     using RedemptionQueue for RedemptionQueue.State;
 
-    function releaseMintedAssets(
-        Agent.State storage _agent,
-        uint64 _valueAMG
-    )
-        internal
-    {
+    function releaseMintedAssets(Agent.State storage _agent, uint64 _valueAMG) internal {
         _agent.mintedAMG = _agent.mintedAMG - _valueAMG;
     }
 
-    function startRedeemingAssets(
-        Agent.State storage _agent,
-        uint64 _valueAMG,
-        bool _poolSelfCloseRedemption
-    )
+    function startRedeemingAssets(Agent.State storage _agent, uint64 _valueAMG, bool _poolSelfCloseRedemption)
         internal
     {
         _agent.redeemingAMG += _valueAMG;
@@ -37,25 +27,14 @@ library AgentBacking {
         releaseMintedAssets(_agent, _valueAMG);
     }
 
-    function endRedeemingAssets(
-        Agent.State storage _agent,
-        uint64 _valueAMG,
-        bool _poolSelfCloseRedemption
-    )
-        internal
-    {
+    function endRedeemingAssets(Agent.State storage _agent, uint64 _valueAMG, bool _poolSelfCloseRedemption) internal {
         _agent.redeemingAMG = _agent.redeemingAMG - _valueAMG;
         if (!_poolSelfCloseRedemption) {
             _agent.poolRedeemingAMG = _agent.poolRedeemingAMG - _valueAMG;
         }
     }
 
-    function createNewMinting(
-        Agent.State storage _agent,
-        uint64 _valueAMG
-    )
-        internal
-    {
+    function createNewMinting(Agent.State storage _agent, uint64 _valueAMG) internal {
         // allocate minted assets
         _agent.mintedAMG += _valueAMG;
 
@@ -72,12 +51,7 @@ library AgentBacking {
         changeDust(_agent, newDustAMG);
     }
 
-    function createRedemptionTicket(
-        Agent.State storage _agent,
-        uint64 _ticketValueAMG
-    )
-        internal
-    {
+    function createRedemptionTicket(Agent.State storage _agent, uint64 _ticketValueAMG) internal {
         AssetManagerState.State storage state = AssetManagerState.get();
         if (_ticketValueAMG == 0) return;
         address vaultAddress = _agent.vaultAddress();
@@ -96,24 +70,14 @@ library AgentBacking {
         }
     }
 
-    function changeDust(
-        Agent.State storage _agent,
-        uint64 _newDustAMG
-    )
-        internal
-    {
+    function changeDust(Agent.State storage _agent, uint64 _newDustAMG) internal {
         if (_agent.dustAMG == _newDustAMG) return;
         _agent.dustAMG = _newDustAMG;
         uint256 dustUBA = Conversion.convertAmgToUBA(_newDustAMG);
         emit IAssetManagerEvents.DustChanged(_agent.vaultAddress(), dustUBA);
     }
 
-    function decreaseDust(
-        Agent.State storage _agent,
-        uint64 _dustDecreaseAMG
-    )
-        internal
-    {
+    function decreaseDust(Agent.State storage _agent, uint64 _dustDecreaseAMG) internal {
         uint64 newDustAMG = _agent.dustAMG - _dustDecreaseAMG;
         changeDust(_agent, newDustAMG);
     }

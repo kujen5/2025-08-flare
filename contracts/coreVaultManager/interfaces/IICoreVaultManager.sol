@@ -7,7 +7,6 @@ import {ICoreVaultManager} from "../../userInterfaces/ICoreVaultManager.sol";
  * Core vault manager internal interface
  */
 interface IICoreVaultManager is ICoreVaultManager {
-
     /**
      * Requests transfer from core vault to destination address.
      * @param _destinationAddress destination address
@@ -25,9 +24,7 @@ interface IICoreVaultManager is ICoreVaultManager {
         bytes32 _paymentReference,
         uint128 _amount,
         bool _cancelable
-    )
-        external
-        returns (bytes32 _actualPaymentReference);
+    ) external returns (bytes32 _actualPaymentReference);
 
     /**
      * Cancels transfer request from core vault.
@@ -35,8 +32,5 @@ interface IICoreVaultManager is ICoreVaultManager {
      * NOTE: if the request does not exist (anymore), the call will revert.
      * NOTE: may only be called by the asset manager.
      */
-    function cancelTransferRequestFromCoreVault(
-        string memory _destinationAddress
-    )
-        external;
+    function cancelTransferRequestFromCoreVault(string memory _destinationAddress) external;
 }

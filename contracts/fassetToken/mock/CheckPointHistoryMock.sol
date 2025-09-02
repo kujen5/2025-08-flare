@@ -6,7 +6,8 @@ import {CheckPointHistory} from "../library/CheckPointHistory.sol";
 /**
  * @title Check Point History Mock contract
  * @notice A contract to stub the CheckPointHistory library for testing.
- **/
+ *
+ */
 contract CheckPointHistoryMock {
     using CheckPointHistory for CheckPointHistory.CheckPointHistoryState;
 

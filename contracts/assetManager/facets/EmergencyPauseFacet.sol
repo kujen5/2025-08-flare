@@ -9,16 +9,12 @@ import {AssetManagerState} from "../library/data/AssetManagerState.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 
-
 contract EmergencyPauseFacet is AssetManagerBase, IAssetManagerEvents {
     using SafeCast for uint256;
 
     error PausedByGovernance();
 
-    function emergencyPause(bool _byGovernance, uint256 _duration)
-        external
-        onlyAssetManagerController
-    {
+    function emergencyPause(bool _byGovernance, uint256 _duration) external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         bool pausedAtStart = _paused();
         if (_byGovernance) {
@@ -48,31 +44,23 @@ contract EmergencyPauseFacet is AssetManagerBase, IAssetManagerEvents {
         }
     }
 
-    function resetEmergencyPauseTotalDuration()
-        external
-        onlyAssetManagerController
-    {
+    function resetEmergencyPauseTotalDuration() external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         state.emergencyPausedTotalDuration = 0;
     }
 
-    function emergencyPaused()
-        external view
-        returns (bool)
-    {
+    function emergencyPaused() external view returns (bool) {
         return _paused();
     }
 
-    function emergencyPausedUntil()
-        external view
-        returns (uint256)
-    {
+    function emergencyPausedUntil() external view returns (uint256) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return _paused() ? state.emergencyPausedUntil : 0;
     }
 
     function emergencyPauseDetails()
-        external view
+        external
+        view
         returns (uint256 _pausedUntil, uint256 _totalPauseDuration, bool _pausedByGovernance)
     {
         AssetManagerState.State storage state = AssetManagerState.get();

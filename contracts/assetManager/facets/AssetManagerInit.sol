@@ -18,7 +18,6 @@ import {CollateralType} from "../../userInterfaces/data/CollateralType.sol";
 import {IAgentPing} from "../../userInterfaces/IAgentPing.sol";
 import {IAssetManager} from "../../userInterfaces/IAssetManager.sol";
 
-
 contract AssetManagerInit is GovernedProxyImplementation, ReentrancyGuard {
     error NotInitialized();
 
@@ -27,9 +26,7 @@ contract AssetManagerInit is GovernedProxyImplementation, ReentrancyGuard {
         address _initialGovernance,
         AssetManagerSettings.Data memory _settings,
         CollateralType.Data[] memory _initialCollateralTypes
-    )
-        external
-    {
+    ) external {
         GovernedBase.initialise(_governanceSettings, _initialGovernance);
         ReentrancyGuard.initializeReentrancyGuard();
         SettingsInitializer.validateAndSet(_settings);

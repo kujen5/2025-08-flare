@@ -9,7 +9,6 @@ import {IISettingsManagement} from "./IISettingsManagement.sol";
 import {CollateralType} from "../../userInterfaces/data/CollateralType.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 /**
  * Asset Manager methods used internally in AgentVault, CollateralPool and AssetManagerController.
  */
@@ -37,21 +36,20 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
     /**
      * Trigger pause of most operations.
      */
-    function emergencyPause(bool _byGovernance, uint256 _duration)
-        external;
+    function emergencyPause(bool _byGovernance, uint256 _duration) external;
 
     /**
      * Reset total duration of 3rd party pauses, so that they can trigger pause again.
      * Otherwise, the total duration is automatically reset emergencyPauseDurationResetAfterSeconds after last pause.
      */
-    function resetEmergencyPauseTotalDuration()
-        external;
+    function resetEmergencyPauseTotalDuration() external;
 
     /**
      * Emergency pause details, useful for monitors.
      */
     function emergencyPauseDetails()
-        external view
+        external
+        view
         returns (uint256 _pausedUntil, uint256 _totalPauseDuration, bool _pausedByGovernance);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -60,21 +58,20 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
     /**
      * Trigger pause of most operations.
      */
-    function emergencyPauseTransfers(bool _byGovernance, uint256 _duration)
-        external;
+    function emergencyPauseTransfers(bool _byGovernance, uint256 _duration) external;
 
     /**
      * Reset total duration of 3rd party pauses, so that they can trigger pause again.
      * Otherwise, the total duration is automatically reset emergencyPauseDurationResetAfterSeconds after last pause.
      */
-    function resetEmergencyPauseTransfersTotalDuration()
-        external;
+    function resetEmergencyPauseTransfersTotalDuration() external;
 
     /**
      * Emergency pause details, useful for monitors.
      */
     function emergencyPauseTransfersDetails()
-        external view
+        external
+        view
         returns (uint256 _pausedUntil, uint256 _totalPauseDuration, bool _pausedByGovernance);
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -104,10 +101,7 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * @param _end the end index (exclusive) of the list of agent vaults to upgrade;
      *  can be larger then the number of agents, if gas is not an issue
      */
-    function upgradeAgentVaultsAndPools(
-        uint256 _start,
-        uint256 _end
-    ) external;
+    function upgradeAgentVaultsAndPools(uint256 _start, uint256 _end) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Collateral type management
@@ -116,9 +110,7 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * Add new vault collateral type (new token type and initial collateral ratios).
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function addCollateralType(
-        CollateralType.Data calldata _data
-    ) external;
+    function addCollateralType(CollateralType.Data calldata _data) external;
 
     /**
      * Update collateral ratios for collateral type identified by `_collateralClass` and `_token`.
@@ -137,11 +129,8 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * that still use it as collateral will be liquidated.
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function deprecateCollateralType(
-        CollateralType.Class _collateralClass,
-        IERC20 _token,
-        uint256 _invalidationTimeSec
-    ) external;
+    function deprecateCollateralType(CollateralType.Class _collateralClass, IERC20 _token, uint256 _invalidationTimeSec)
+        external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Collateral pool redemptions
@@ -164,20 +153,14 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * Used in self-close exit from the collateral pool when requested or when self-close amount is less than 1 lot.
      * NOTE: only collateral pool can call this method.
      */
-    function redeemFromAgentInCollateral(
-        address _agentVault,
-        address _receiver,
-        uint256 _amountUBA
-    ) external;
+    function redeemFromAgentInCollateral(address _agentVault, address _receiver, uint256 _amountUBA) external;
 
     /**
      * To avoid unlimited work, the maximum number of redemption tickets closed in redemption, self close
      * or liquidation is limited. This means that a single redemption/self close/liquidation is limited.
      * This function calculates the maximum single redemption amount.
      */
-    function maxRedemptionFromAgent(address _agentVault)
-        external view
-        returns (uint256);
+    function maxRedemptionFromAgent(address _agentVault) external view returns (uint256);
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Functions, used by agent vault during collateral deposit/withdraw
@@ -187,20 +170,14 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * NOTE: may only be called from an agent vault, not from an EOA address.
      * @param _valueNATWei the withdrawn amount
      */
-    function beforeCollateralWithdrawal(
-        IERC20 _token,
-        uint256 _valueNATWei
-    ) external;
+    function beforeCollateralWithdrawal(IERC20 _token, uint256 _valueNATWei) external;
 
     /**
      * Called by AgentVault when there was a deposit.
      * May pull agent out of liquidation.
      * NOTE: may only be called from an agent vault or collateral pool, not from an EOA address.
      */
-    function updateCollateral(
-        address _agentVault,
-        IERC20 _token
-    ) external;
+    function updateCollateral(address _agentVault, IERC20 _token) external;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // View functions used internally by agent vault and collateral pool.
@@ -210,17 +187,13 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * Used internally by agent vault and collateral pool.
      * @return WNat contract
      */
-    function getWNat()
-        external view
-        returns (IWNat);
+    function getWNat() external view returns (IWNat);
 
     /**
      * Returns price of asset (UBA) in NAT Wei as a fraction.
      * Used internally by collateral pool.
      */
-    function assetPriceNatWei()
-        external view
-        returns (uint256 _multiplier, uint256 _divisor);
+    function assetPriceNatWei() external view returns (uint256 _multiplier, uint256 _divisor);
 
     /**
      * Returns the number of f-assets that the agent's pool identified by `_agentVault` is backing.
@@ -228,18 +201,14 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * f-assets being redeemed by pool self-close redemptions.
      * Used internally by collateral pool.
      */
-    function getFAssetsBackedByPool(address _agentVault)
-        external view
-        returns (uint256);
+    function getFAssetsBackedByPool(address _agentVault) external view returns (uint256);
 
     /**
      * Returns the duration for which the collateral pool tokens are timelocked after minting.
      * Timelocking is done to battle sandwich attacks aimed at stealing newly deposited f-asset
      * fees from the pool.
      */
-    function getCollateralPoolTokenTimelockSeconds()
-        external view
-        returns (uint256);
+    function getCollateralPoolTokenTimelockSeconds() external view returns (uint256);
 
     /**
      * Check if `_token` is either vault collateral token for `_agentVault` or the pool token.
@@ -247,29 +216,21 @@ interface IIAssetManager is IAssetManager, IGoverned, IDiamondCut, IISettingsMan
      * withdrawn after announcement if they are not backing any f-assets.
      * Used internally by agent vault.
      */
-    function isLockedVaultToken(address _agentVault, IERC20 _token)
-        external view
-        returns (bool);
+    function isLockedVaultToken(address _agentVault, IERC20 _token) external view returns (bool);
 
     /**
      * Check if `_token` is any of the vault collateral tokens (including already invalidated).
      */
-    function isVaultCollateralToken(IERC20 _token)
-        external view
-        returns (bool);
+    function isVaultCollateralToken(IERC20 _token) external view returns (bool);
 
     /**
      * True if `_address` is either work or management address of the owner of the agent identified by `_agentVault`.
      * Used internally by agent vault.
      */
-    function isAgentVaultOwner(address _agentVault, address _address)
-        external view
-        returns (bool);
+    function isAgentVaultOwner(address _agentVault, address _address) external view returns (bool);
 
     /**
      * Return the work address for the given management address.
      */
-    function getWorkAddress(address _managementAddress)
-        external view
-        returns (address);
+    function getWorkAddress(address _managementAddress) external view returns (address);
 }

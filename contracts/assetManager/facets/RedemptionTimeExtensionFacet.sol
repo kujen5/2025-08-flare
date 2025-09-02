@@ -11,9 +11,7 @@ import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettin
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 import {IRedemptionTimeExtension} from "../../userInterfaces/IRedemptionTimeExtension.sol";
 
-
 contract RedemptionTimeExtensionFacet is AssetManagerBase, IRedemptionTimeExtension {
-
     error ValueMustBeNonzero();
     error DecreaseTooBig();
     error IncreaseTooBig();
@@ -27,9 +25,7 @@ contract RedemptionTimeExtensionFacet is AssetManagerBase, IRedemptionTimeExtens
 
     // this method is not accessible through diamond proxy
     // it is only used for initialization when the contract is added after proxy deploy
-    function initRedemptionTimeExtensionFacet(uint256 _redemptionPaymentExtensionSeconds)
-        external
-    {
+    function initRedemptionTimeExtensionFacet(uint256 _redemptionPaymentExtensionSeconds) external {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.supportedInterfaces[type(IERC165).interfaceId], DiamondNotInitialized());
         ds.supportedInterfaces[type(IRedemptionTimeExtension).interfaceId] = true;
@@ -38,10 +34,7 @@ contract RedemptionTimeExtensionFacet is AssetManagerBase, IRedemptionTimeExtens
         RedemptionTimeExtension.setRedemptionPaymentExtensionSeconds(_redemptionPaymentExtensionSeconds);
     }
 
-    function setRedemptionPaymentExtensionSeconds(uint256 _value)
-        external
-        onlyAssetManagerController
-    {
+    function setRedemptionPaymentExtensionSeconds(uint256 _value) external onlyAssetManagerController {
         SettingsUpdater.checkEnoughTimeSinceLastUpdate();
         // validate
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -54,10 +47,7 @@ contract RedemptionTimeExtensionFacet is AssetManagerBase, IRedemptionTimeExtens
         emit IAssetManagerEvents.SettingChanged("redemptionPaymentExtensionSeconds", _value);
     }
 
-    function redemptionPaymentExtensionSeconds()
-        external view
-        returns (uint256)
-    {
+    function redemptionPaymentExtensionSeconds() external view returns (uint256) {
         return RedemptionTimeExtension.redemptionPaymentExtensionSeconds();
     }
 }

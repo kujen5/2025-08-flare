@@ -3,14 +3,15 @@ pragma solidity ^0.8.27;
 
 library Redemption {
     enum Status {
-        EMPTY,      // redemption request with this id doesn't exist
-        ACTIVE,     // waiting for confirmation/default
-        DEFAULTED,  // default called, failed or late payment can still be confirmed
+        EMPTY, // redemption request with this id doesn't exist
+        ACTIVE, // waiting for confirmation/default
+        DEFAULTED, // default called, failed or late payment can still be confirmed
         // final statuses - there can be no valid payment for this redemption anymore
         SUCCESSFUL, // successful payment confirmed
-        FAILED,     // payment failed
-        BLOCKED,    // payment blocked
-        REJECTED    // redemption request rejected due to invalid redeemer's address
+        FAILED, // payment failed
+        BLOCKED, // payment blocked
+        REJECTED // redemption request rejected due to invalid redeemer's address
+
     }
 
     struct Request {

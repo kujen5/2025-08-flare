@@ -20,7 +20,6 @@ import {CollateralType} from "../../userInterfaces/data/CollateralType.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 
-
 contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
     using SafePct for uint256;
     using SafeCast for uint256;
@@ -50,10 +49,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * @param _valueNATWei the amount to be withdrawn
      * @return _withdrawalAllowedAt the timestamp when the withdrawal can be made
      */
-    function announceVaultCollateralWithdrawal(
-        address _agentVault,
-        uint256 _valueNATWei
-    )
+    function announceVaultCollateralWithdrawal(address _agentVault, uint256 _valueNATWei)
         external
         onlyAgentVaultOwner(_agentVault)
         returns (uint256 _withdrawalAllowedAt)
@@ -70,10 +66,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * @param _valueNATWei the amount to be withdrawn
      * @return _redemptionAllowedAt the timestamp when the redemption can be made
      */
-    function announceAgentPoolTokenRedemption(
-        address _agentVault,
-        uint256 _valueNATWei
-    )
+    function announceAgentPoolTokenRedemption(address _agentVault, uint256 _valueNATWei)
         external
         onlyAgentVaultOwner(_agentVault)
         returns (uint256 _redemptionAllowedAt)
@@ -86,12 +79,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * NOTE: may only be called from an agent vault, not from an EOA address.
      * @param _amountWei the withdrawn amount
      */
-    function beforeCollateralWithdrawal(
-        IERC20 _token,
-        uint256 _amountWei
-    )
-        external
-    {
+    function beforeCollateralWithdrawal(IERC20 _token, uint256 _amountWei) external {
         Agent.State storage agent = Agent.get(msg.sender);
         Collateral.Kind kind;
         if (_token == agent.getVaultCollateralToken()) {
@@ -99,7 +87,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
         } else if (_token == agent.collateralPool.poolToken()) {
             kind = Collateral.Kind.AGENT_POOL;
         } else {
-            return;     // we don't care about other token withdrawals from agent vault
+            return; // we don't care about other token withdrawals from agent vault
         }
         Agent.WithdrawalAnnouncement storage withdrawal = agent.withdrawalAnnouncement(kind);
         Collateral.Data memory collateralData = AgentCollateral.singleCollateralData(agent, kind);
@@ -111,15 +99,17 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
         require(_amountWei <= withdrawal.amountWei, WithdrawalMoreThanAnnounced());
         require(block.timestamp >= withdrawal.allowedAt, WithdrawalNotAllowedYet());
         AssetManagerSettings.Data storage settings = Globals.getSettings();
-        require(block.timestamp <= withdrawal.allowedAt + settings.agentTimelockedOperationWindowSeconds,
-            WithdrawalTooLate());
+        require(
+            block.timestamp <= withdrawal.allowedAt + settings.agentTimelockedOperationWindowSeconds,
+            WithdrawalTooLate()
+        );
         // Check that withdrawal doesn't reduce CR below mintingCR (withdrawal is not executed yet, but it balances
         // with the withdrawal announcement that is still in effect).
         // This would be equivalent to `collateralData.freeCollateralWei >= 0` if freeCollateralWei was signed,
         // but actually freeCollateralWei always returns positive part, so it cannot be used in this test.
         require(collateralData.lockedCollateralWei(agent) <= collateralData.fullCollateral, WithdrawalCRTooLow());
         // (partially) clear withdrawal announcement
-        uint256 remaining = withdrawal.amountWei - _amountWei;    // guarded by above require
+        uint256 remaining = withdrawal.amountWei - _amountWei; // guarded by above require
         withdrawal.amountWei = uint128(remaining);
         if (remaining == 0) {
             withdrawal.allowedAt = 0;
@@ -131,15 +121,9 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * May pull agent out of liquidation.
      * NOTE: may only be called from an agent vault or collateral pool, not from an EOA address.
      */
-    function updateCollateral(
-        address _agentVault,
-        IERC20 _token
-    )
-        external
-    {
+    function updateCollateral(address _agentVault, IERC20 _token) external {
         Agent.State storage agent = Agent.get(_agentVault);
-        require(msg.sender == _agentVault || msg.sender == address(agent.collateralPool),
-            OnlyAgentVaultOrPool());
+        require(msg.sender == _agentVault || msg.sender == address(agent.collateralPool), OnlyAgentVaultOrPool());
         // try to pull agent out of liquidation
         if (agent.isCollateralToken(_token)) {
             Liquidation.endLiquidationIfHealthy(agent);
@@ -151,13 +135,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * NOTE: may only be called by the agent vault owner.
      * NOTE: at the time of switch, the agent must have enough of both collaterals in the vault.
      */
-    function switchVaultCollateral(
-        address _agentVault,
-        IERC20 _token
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function switchVaultCollateral(address _agentVault, IERC20 _token) external onlyAgentVaultOwner(_agentVault) {
         Agent.State storage agent = Agent.get(_agentVault);
         // check that old collateral is deprecated
         // could work without this check, but would need timelock, otherwise there can be
@@ -169,8 +147,9 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
         require(withdrawal.allowedAt == 0, CollateralWithdrawalAnnounced());
         // set new collateral
         agent.setVaultCollateral(_token);
-        emit IAssetManagerEvents.AgentCollateralTypeChanged(_agentVault,
-            uint8(CollateralType.Class.VAULT), address(_token));
+        emit IAssetManagerEvents.AgentCollateralTypeChanged(
+            _agentVault, uint8(CollateralType.Class.VAULT), address(_token)
+        );
     }
 
     /**
@@ -179,12 +158,7 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
      * new ones and sets it for use by the pool.
      * NOTE: may only be called by the agent vault owner.
      */
-    function upgradeWNatContract(
-        address _agentVault
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function upgradeWNatContract(address _agentVault) external onlyAgentVaultOwner(_agentVault) {
         Agent.State storage agent = Agent.get(_agentVault);
         AssetManagerState.State storage state = AssetManagerState.get();
         IWNat wNat = IWNat(address(state.collateralTokens[state.poolCollateralIndex].token));
@@ -192,16 +166,13 @@ contract AgentCollateralFacet is AssetManagerBase, ReentrancyGuard {
         if (agent.poolCollateralIndex != state.poolCollateralIndex) {
             agent.poolCollateralIndex = state.poolCollateralIndex;
             agent.collateralPool.upgradeWNatContract(wNat);
-            emit IAssetManagerEvents.AgentCollateralTypeChanged(_agentVault,
-                uint8(CollateralType.Class.POOL), address(wNat));
+            emit IAssetManagerEvents.AgentCollateralTypeChanged(
+                _agentVault, uint8(CollateralType.Class.POOL), address(wNat)
+            );
         }
     }
 
-    function _announceWithdrawal(
-        Collateral.Kind _kind,
-        address _agentVault,
-        uint256 _amountWei
-    )
+    function _announceWithdrawal(Collateral.Kind _kind, address _agentVault, uint256 _amountWei)
         private
         returns (uint256)
     {

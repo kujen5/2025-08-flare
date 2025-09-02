@@ -14,7 +14,6 @@ import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettin
 import {AvailableAgentInfo} from "../../userInterfaces/data/AvailableAgentInfo.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 
-
 contract AvailableAgentsFacet is AssetManagerBase {
     using SafeCast for uint256;
     using AgentCollateral for Collateral.CombinedData;
@@ -33,12 +32,7 @@ contract AvailableAgentsFacet is AssetManagerBase {
      * NOTE: may only be called by the agent vault owner.
      * @param _agentVault agent vault address
      */
-    function makeAgentAvailable(
-        address _agentVault
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function makeAgentAvailable(address _agentVault) external onlyAgentVaultOwner(_agentVault) {
         AssetManagerState.State storage state = AssetManagerState.get();
         Agent.State storage agent = Agent.get(_agentVault);
         require(agent.status == Agent.Status.NORMAL, InvalidAgentStatus());
@@ -49,9 +43,14 @@ contract AvailableAgentsFacet is AssetManagerBase {
         require(freeCollateralLots >= 1, NotEnoughFreeCollateral());
         // add to queue
         state.availableAgents.push(_agentVault);
-        agent.availableAgentsPos = state.availableAgents.length.toUint32();     // index+1 (0=not in list)
-        emit IAssetManagerEvents.AgentAvailable(_agentVault, agent.feeBIPS,
-            agent.mintingVaultCollateralRatioBIPS, agent.mintingPoolCollateralRatioBIPS, freeCollateralLots);
+        agent.availableAgentsPos = state.availableAgents.length.toUint32(); // index+1 (0=not in list)
+        emit IAssetManagerEvents.AgentAvailable(
+            _agentVault,
+            agent.feeBIPS,
+            agent.mintingVaultCollateralRatioBIPS,
+            agent.mintingPoolCollateralRatioBIPS,
+            freeCollateralLots
+        );
     }
 
     /**
@@ -60,9 +59,7 @@ contract AvailableAgentsFacet is AssetManagerBase {
      * @param _agentVault agent vault address
      * @return _exitAllowedAt the timestamp when the agent can exit
      */
-    function announceExitAvailableAgentList(
-        address _agentVault
-    )
+    function announceExitAvailableAgentList(address _agentVault)
         external
         onlyAgentVaultOwner(_agentVault)
         returns (uint256 _exitAllowedAt)
@@ -80,20 +77,17 @@ contract AvailableAgentsFacet is AssetManagerBase {
      * NOTE: may only be called by the agent vault owner and after announcement.
      * @param _agentVault agent vault address
      */
-    function exitAvailableAgentList(
-        address _agentVault
-    )
-        external
-        onlyAgentVaultOwner(_agentVault)
-    {
+    function exitAvailableAgentList(address _agentVault) external onlyAgentVaultOwner(_agentVault) {
         AssetManagerState.State storage state = AssetManagerState.get();
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         Agent.State storage agent = Agent.get(_agentVault);
         require(agent.availableAgentsPos != 0, AgentNotAvailable());
         require(agent.exitAvailableAfterTs != 0, ExitNotAnnounced());
         require(block.timestamp >= agent.exitAvailableAfterTs, ExitTooSoon());
-        require(block.timestamp <= agent.exitAvailableAfterTs + settings.agentTimelockedOperationWindowSeconds,
-            ExitTooLate());
+        require(
+            block.timestamp <= agent.exitAvailableAfterTs + settings.agentTimelockedOperationWindowSeconds,
+            ExitTooLate()
+        );
         uint256 ind = agent.availableAgentsPos - 1;
         if (ind + 1 < state.availableAgents.length) {
             state.availableAgents[ind] = state.availableAgents[state.availableAgents.length - 1];
@@ -112,11 +106,9 @@ contract AvailableAgentsFacet is AssetManagerBase {
      * @param _start first index to return from the available agent's list
      * @param _end end index (one above last) to return from the available agent's list
      */
-    function getAvailableAgentsList(
-        uint256 _start,
-        uint256 _end
-    )
-        external view
+    function getAvailableAgentsList(uint256 _start, uint256 _end)
+        external
+        view
         returns (address[] memory _agents, uint256 _totalLength)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
@@ -138,11 +130,9 @@ contract AvailableAgentsFacet is AssetManagerBase {
      * @param _start first index to return from the available agent's list
      * @param _end end index (one above last) to return from the available agent's list
      */
-    function getAvailableAgentsDetailedList(
-        uint256 _start,
-        uint256 _end
-    )
-        external view
+    function getAvailableAgentsDetailedList(uint256 _start, uint256 _end)
+        external
+        view
         returns (AvailableAgentInfo.Data[] memory _agents, uint256 _totalLength)
     {
         AssetManagerState.State storage state = AssetManagerState.get();

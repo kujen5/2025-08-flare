@@ -2,20 +2,21 @@
 // solhint-disable no-empty-blocks
 pragma solidity ^0.8.0;
 
-import { TestLib } from "./TestLib.sol";
+import {TestLib} from "./TestLib.sol";
 
 // Example library to show a simple example of diamond storage
 
 contract Test1Facet {
     event TestEvent(address something);
 
-   function test1Func1() external {
-      TestLib.setMyAddress(address(this));
+    function test1Func1() external {
+        TestLib.setMyAddress(address(this));
     }
 
-    function test1Func2() external view returns (address){
-      return TestLib.getMyAddress();
+    function test1Func2() external view returns (address) {
+        return TestLib.getMyAddress();
     }
+
     function test1Func3() external {}
 
     function test1Func4() external {}

@@ -6,46 +6,27 @@ import {IDistributionToDelegators} from "@flarenetwork/flare-periphery-contracts
 import {IRewardManager} from "@flarenetwork/flare-periphery-contracts/flare/IRewardManager.sol";
 import {ICollateralPoolToken} from "./ICollateralPoolToken.sol";
 
-
 interface ICollateralPool {
     event CPEntered(
-        address indexed tokenHolder,
-        uint256 amountNatWei,
-        uint256 receivedTokensWei,
-        uint256 timelockExpiresAt);
+        address indexed tokenHolder, uint256 amountNatWei, uint256 receivedTokensWei, uint256 timelockExpiresAt
+    );
 
-    event CPExited(
-        address indexed tokenHolder,
-        uint256 burnedTokensWei,
-        uint256 receivedNatWei);
+    event CPExited(address indexed tokenHolder, uint256 burnedTokensWei, uint256 receivedNatWei);
 
     event CPSelfCloseExited(
-        address indexed tokenHolder,
-        uint256 burnedTokensWei,
-        uint256 receivedNatWei,
-        uint256 closedFAssetsUBA);
+        address indexed tokenHolder, uint256 burnedTokensWei, uint256 receivedNatWei, uint256 closedFAssetsUBA
+    );
 
-    event CPFeeDebtPaid(
-        address indexed tokenHolder,
-        uint256 paidFeesUBA);
+    event CPFeeDebtPaid(address indexed tokenHolder, uint256 paidFeesUBA);
 
-    event CPFeesWithdrawn(
-        address indexed tokenHolder,
-        uint256 withdrawnFeesUBA);
+    event CPFeesWithdrawn(address indexed tokenHolder, uint256 withdrawnFeesUBA);
 
-    event CPFeeDebtChanged(
-        address indexed tokenHolder,
-        int256 newFeeDebtUBA);
+    event CPFeeDebtChanged(address indexed tokenHolder, int256 newFeeDebtUBA);
 
     // Emitted when asset manager forces payout from the pool
-    event CPPaidOut(
-        address indexed recipient,
-        uint256 paidNatWei,
-        uint256 burnedTokensWei);
+    event CPPaidOut(address indexed recipient, uint256 paidNatWei, uint256 burnedTokensWei);
 
-    event CPClaimedReward(
-        uint256 amountNatWei,
-        uint8 rewardType);
+    event CPClaimedReward(uint256 amountNatWei, uint8 rewardType);
 
     error OnlyAssetManager();
     error OnlyAgent();
@@ -76,9 +57,7 @@ interface ICollateralPool {
      * If there are some FAsset fees already in the pool, tokens also have some fee debt, which
      * has to be paid off to make tokens transferable (but they can be redeemed).
      */
-    function enter()
-        external payable
-        returns (uint256 _receivedTokens, uint256 _timelockExpiresAt);
+    function enter() external payable returns (uint256 _receivedTokens, uint256 _timelockExpiresAt);
 
     /**
      * Exits the pool by redeeming the given amount of pool tokens for a share of NAT and f-asset fees.
@@ -89,9 +68,7 @@ interface ICollateralPool {
      *  will revert. In that case, see selfCloseExit.
      * @param _tokenShare   The amount of pool tokens to be redeemed
      */
-    function exit(uint256 _tokenShare)
-        external
-        returns (uint256 _natShare);
+    function exit(uint256 _tokenShare) external returns (uint256 _natShare);
 
     /**
      * Exits the pool by redeeming the given amount of pool tokens and burning f-assets in a way that doesn't
@@ -137,9 +114,7 @@ interface ICollateralPool {
      * @param _tokenShare   The amount of pool tokens to be redeemed
      * @param _recipient    The address to which NATs and FAsset fees will be transferred
      */
-    function exitTo(uint256 _tokenShare, address payable _recipient)
-        external
-        returns (uint256 _natShare);
+    function exitTo(uint256 _tokenShare, address payable _recipient) external returns (uint256 _natShare);
 
     /**
      * Exits the pool by redeeming the given amount of pool tokens and burning f-assets in a way that doesn't
@@ -188,19 +163,15 @@ interface ICollateralPool {
      * Claim airdrops earned by holding wrapped native tokens in the pool.
      * NOTE: only the owner of the pool's corresponding agent vault may call this method.
      */
-    function claimAirdropDistribution(
-        IDistributionToDelegators _distribution,
-        uint256 _month
-    ) external
-        returns(uint256 _claimedAmount);
+    function claimAirdropDistribution(IDistributionToDelegators _distribution, uint256 _month)
+        external
+        returns (uint256 _claimedAmount);
 
     /**
      * Opt out of airdrops for wrapped native tokens in the pool.
      * NOTE: only the owner of the pool's corresponding agent vault may call this method.
      */
-    function optOutOfAirdrop(
-        IDistributionToDelegators _distribution
-    ) external;
+    function optOutOfAirdrop(IDistributionToDelegators _distribution) external;
 
     /**
      * Delegate WNat vote power for the wrapped native tokens held in this vault.
@@ -221,58 +192,44 @@ interface ICollateralPool {
         IRewardManager _rewardManager,
         uint24 _lastRewardEpoch,
         IRewardManager.RewardClaimWithProof[] calldata _proofs
-    ) external
-        returns(uint256 _claimedAmount);
+    ) external returns (uint256 _claimedAmount);
 
     /**
      * Get the ERC20 pool token used by this collateral pool
      */
-    function poolToken()
-        external view
-        returns (ICollateralPoolToken);
+    function poolToken() external view returns (ICollateralPoolToken);
 
     /**
      * Get the vault of the agent that owns this collateral pool
      */
-    function agentVault()
-        external view
-        returns (address);
+    function agentVault() external view returns (address);
 
     /**
      * Get the exit collateral ratio in BIPS
      * This is the collateral ratio below which exiting the pool is not allowed
      */
-    function exitCollateralRatioBIPS()
-        external view
-        returns (uint32);
-
+    function exitCollateralRatioBIPS() external view returns (uint32);
 
     /**
      * Return total amount of collateral in the pool.
      * This can be different to WNat.balanceOf(poolAddress), because the collateral has to be tracked
      * to prevent unexpected deposit type of attacks on the pool.
      */
-    function totalCollateral()
-        external view
-        returns (uint256);
+    function totalCollateral() external view returns (uint256);
 
     /**
      * Returns the f-asset fees belonging to this user.
      * This is the amount of f-assets the user can withdraw by burning transferable pool tokens.
      * @param _account User address
      */
-    function fAssetFeesOf(address _account)
-        external view
-        returns (uint256);
+    function fAssetFeesOf(address _account) external view returns (uint256);
 
     /**
      * Returns the total f-asset fees in the pool.
      * This can be different to FAsset.balanceOf(poolAddress), because the collateral has to be tracked
      * to prevent unexpected deposit type of attacks on the pool.
      */
-    function totalFAssetFees()
-        external view
-        returns (uint256);
+    function totalFAssetFees() external view returns (uint256);
 
     /**
      * Returns the user's f-asset fee debt.
@@ -281,21 +238,15 @@ interface ICollateralPool {
      * to the share of the f-asset fees already in the pool.
      * @param _account User address
      */
-    function fAssetFeeDebtOf(address _account)
-        external view
-        returns (int256);
+    function fAssetFeeDebtOf(address _account) external view returns (int256);
 
     /**
      * Returns the total f-asset fee debt for all users.
      */
-    function totalFAssetFeeDebt()
-        external view
-        returns (int256);
+    function totalFAssetFeeDebt() external view returns (int256);
 
     /**
      * Get the amount of fassets that need to be burned to perform self close exit.
      */
-    function fAssetRequiredForSelfCloseExit(uint256 _tokenAmountWei)
-        external view
-        returns (uint256);
+    function fAssetRequiredForSelfCloseExit(uint256 _tokenAmountWei) external view returns (uint256);
 }

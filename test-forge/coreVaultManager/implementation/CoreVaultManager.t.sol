@@ -11,7 +11,6 @@ import {CoreVaultManagerHandler} from "./CoreVaultManagerHandler.t.sol";
 
 // solhint-disable func-name-mixedcase
 contract CoreVaultManagerTest is Test {
-
     CoreVaultManager private coreVaultManager;
     CoreVaultManager private coreVaultManagerImpl;
     CoreVaultManagerProxy private coreVaultManagerProxy;
@@ -69,27 +68,17 @@ contract CoreVaultManagerTest is Test {
         coreVaultManager.updateSettings(3600, 1000, 500, 10);
 
         handler = new CoreVaultManagerHandler(
-            coreVaultManager,
-            fdcVerificationMock,
-            governance,
-            assetManager,
-            chainId,
-            coreVaultAddress
+            coreVaultManager, fdcVerificationMock, governance, assetManager, chainId, coreVaultAddress
         );
 
         targetContract(address(handler));
-        bytes4 [] memory selectors = new bytes4[](4);
+        bytes4[] memory selectors = new bytes4[](4);
         selectors[0] = handler.confirmPayment.selector;
         selectors[1] = handler.requestTransferFromCoreVault.selector;
         selectors[2] = handler.triggerInstructions.selector;
         selectors[3] = handler.setEscrowsFinished.selector;
 
-        targetSelector(
-            FuzzSelector({
-                addr: address(handler),
-                selectors: selectors
-            })
-        );
+        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
     }
 
     function fuzz_confirmPayment(uint128 _receivedAmount, bytes32 _transactionId) public {
@@ -128,10 +117,6 @@ contract CoreVaultManagerTest is Test {
         uint128 setEscrowsFinishedAmount = handler.setEscrowsFinishedAmount();
         assertGe(available + escrowed + setEscrowsFinishedAmount, totalRequests, "Funds insufficient for requests");
 
-        assertEq(
-            available,
-            handler.getAvailableFunds(),
-            "availableFunds should match contract state"
-        );
+        assertEq(available, handler.getAvailableFunds(), "availableFunds should match contract state");
     }
 }

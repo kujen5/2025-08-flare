@@ -3,7 +3,6 @@ pragma solidity >=0.7.6 <0.9;
 
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 
-
 interface IUUPSUpgradeable is IERC1967 {
     /**
      * Upgrade proxy to new implementation.

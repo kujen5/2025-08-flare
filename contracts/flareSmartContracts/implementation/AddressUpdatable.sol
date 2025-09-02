@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {IIAddressUpdatable}
-    from "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
+import {IIAddressUpdatable} from
+    "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
 import {IAddressUpdatable} from "../interfaces/IAddressUpdatable.sol";
 
-
 abstract contract AddressUpdatable is IAddressUpdatable, IIAddressUpdatable {
-
     // https://docs.soliditylang.org/en/v0.8.7/contracts.html#constant-and-immutable-state-variables
     // No storage slot is allocated
     bytes32 internal constant ADDRESS_STORAGE_POSITION =
         keccak256("flare.diamond.AddressUpdatable.ADDRESS_STORAGE_POSITION");
 
     modifier onlyAddressUpdater() {
-        require (msg.sender == getAddressUpdater(), OnlyAddressUpdater());
+        require(msg.sender == getAddressUpdater(), OnlyAddressUpdater());
         _;
     }
 
@@ -34,11 +32,9 @@ abstract contract AddressUpdatable is IAddressUpdatable, IIAddressUpdatable {
     /**
      * @notice external method called from AddressUpdater only
      */
-    function updateContractAddresses(
-        bytes32[] memory _contractNameHashes,
-        address[] memory _contractAddresses
-    )
-        external override
+    function updateContractAddresses(bytes32[] memory _contractNameHashes, address[] memory _contractAddresses)
+        external
+        override
         onlyAddressUpdater
     {
         // update addressUpdater address
@@ -50,22 +46,18 @@ abstract contract AddressUpdatable is IAddressUpdatable, IIAddressUpdatable {
     /**
      * @notice virtual method that a contract extending AddressUpdatable must implement
      */
-    function _updateContractAddresses(
-        bytes32[] memory _contractNameHashes,
-        address[] memory _contractAddresses
-    ) internal virtual;
+    function _updateContractAddresses(bytes32[] memory _contractNameHashes, address[] memory _contractAddresses)
+        internal
+        virtual;
 
     /**
      * @notice helper method to get contract address
      * @dev it reverts if contract name does not exist
      */
-    function _getContractAddress(
-        bytes32[] memory _nameHashes,
-        address[] memory _addresses,
-        string memory _nameToFind
-    )
-        internal pure
-        returns(address)
+    function _getContractAddress(bytes32[] memory _nameHashes, address[] memory _addresses, string memory _nameToFind)
+        internal
+        pure
+        returns (address)
     {
         bytes32 nameHash = keccak256(abi.encode(_nameToFind));
         address a = address(0);

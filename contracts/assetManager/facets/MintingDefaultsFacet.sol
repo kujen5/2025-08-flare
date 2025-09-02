@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {IReferencedPaymentNonexistence, IConfirmedBlockHeightExists}
-    from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerification.sol";
+import {
+    IReferencedPaymentNonexistence,
+    IConfirmedBlockHeightExists
+} from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerification.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 import {AssetManagerBase} from "./AssetManagerBase.sol";
 import {IIAgentVault} from "../../agentVault/interfaces/IIAgentVault.sol";
@@ -40,10 +42,7 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
      * @param _proof proof that the minter didn't pay with correct payment reference on the underlying chain
      * @param _crtId id of a collateral reservation created by the minter
      */
-    function mintingPaymentDefault(
-        IReferencedPaymentNonexistence.Proof calldata _proof,
-        uint256 _crtId
-    )
+    function mintingPaymentDefault(IReferencedPaymentNonexistence.Proof calldata _proof, uint256 _crtId)
         external
         nonReentrant
     {
@@ -54,15 +53,21 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
         // check requirements
         TransactionAttestation.verifyReferencedPaymentNonexistence(_proof);
         uint256 underlyingValueUBA = Conversion.convertAmgToUBA(crt.valueAMG);
-        require(_proof.data.requestBody.standardPaymentReference == PaymentReference.minting(_crtId) &&
-            _proof.data.requestBody.destinationAddressHash == agent.underlyingAddressHash &&
-            _proof.data.requestBody.amount == underlyingValueUBA + crt.underlyingFeeUBA,
-            MintingNonPaymentMismatch());
-        require(_proof.data.responseBody.firstOverflowBlockNumber > crt.lastUnderlyingBlock &&
-            _proof.data.responseBody.firstOverflowBlockTimestamp > crt.lastUnderlyingTimestamp,
-            MintingDefaultTooEarly());
-        require(_proof.data.requestBody.minimalBlockNumber <= crt.firstUnderlyingBlock,
-            MintingNonPaymentProofWindowTooShort());
+        require(
+            _proof.data.requestBody.standardPaymentReference == PaymentReference.minting(_crtId)
+                && _proof.data.requestBody.destinationAddressHash == agent.underlyingAddressHash
+                && _proof.data.requestBody.amount == underlyingValueUBA + crt.underlyingFeeUBA,
+            MintingNonPaymentMismatch()
+        );
+        require(
+            _proof.data.responseBody.firstOverflowBlockNumber > crt.lastUnderlyingBlock
+                && _proof.data.responseBody.firstOverflowBlockTimestamp > crt.lastUnderlyingTimestamp,
+            MintingDefaultTooEarly()
+        );
+        require(
+            _proof.data.requestBody.minimalBlockNumber <= crt.firstUnderlyingBlock,
+            MintingNonPaymentProofWindowTooShort()
+        );
         // send event
         uint256 reservedValueUBA = underlyingValueUBA + Minting.calculatePoolFeeUBA(agent, crt);
         emit IAssetManagerEvents.MintingPaymentDefault(crt.agentVault, crt.minter, _crtId, reservedValueUBA);
@@ -87,11 +92,9 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
      *      the payment/non-payment proof anymore
      * @param _crtId collateral reservation id
      */
-    function unstickMinting(
-        IConfirmedBlockHeightExists.Proof calldata _proof,
-        uint256 _crtId
-    )
-        external payable
+    function unstickMinting(IConfirmedBlockHeightExists.Proof calldata _proof, uint256 _crtId)
+        external
+        payable
         nonReentrant
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -101,11 +104,13 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
         // verify proof
         TransactionAttestation.verifyConfirmedBlockHeightExists(_proof);
         // enough time must pass so that proofs are no longer available
-        require(_proof.data.responseBody.lowestQueryWindowBlockNumber > crt.lastUnderlyingBlock
-            && _proof.data.responseBody.lowestQueryWindowBlockTimestamp > crt.lastUnderlyingTimestamp
-            && _proof.data.responseBody.lowestQueryWindowBlockTimestamp + settings.attestationWindowSeconds <=
-                _proof.data.responseBody.blockTimestamp,
-            CannotUnstickMintingYet());
+        require(
+            _proof.data.responseBody.lowestQueryWindowBlockNumber > crt.lastUnderlyingBlock
+                && _proof.data.responseBody.lowestQueryWindowBlockTimestamp > crt.lastUnderlyingTimestamp
+                && _proof.data.responseBody.lowestQueryWindowBlockTimestamp + settings.attestationWindowSeconds
+                    <= _proof.data.responseBody.blockTimestamp,
+            CannotUnstickMintingYet()
+        );
         // burn collateral reservation fee (guarded against reentrancy)
         Globals.getBurnAddress().transfer(crt.reservationFeeNatWei + crt.executorFeeNatGWei * Conversion.GWEI);
         // burn reserved collateral at market price
@@ -123,10 +128,7 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
 
     // We cannot burn typical vault collateral (stablecoins), so the agent must buy them for NAT
     // at FTSO price multiplied by vaultCollateralBuyForFlareFactorBIPS and then we burn the NATs.
-    function _burnVaultCollateral(
-        Agent.State storage _agent,
-        uint256 _amountVaultCollateralWei
-    )
+    function _burnVaultCollateral(Agent.State storage _agent, uint256 _amountVaultCollateralWei)
         private
         returns (uint256 _burnedNatWei)
     {
@@ -136,8 +138,9 @@ contract MintingDefaultsFacet is AssetManagerBase, ReentrancyGuard {
         IIAgentVault vault = IIAgentVault(_agent.vaultAddress());
         // Calculate NAT amount the agent has to pay to receive the "burned" vault collateral tokens.
         // The price is FTSO price plus configurable premium (vaultCollateralBuyForFlareFactorBIPS).
-        _burnedNatWei = Conversion.convert(_amountVaultCollateralWei, vaultCollateral, poolCollateral)
-            .mulBips(settings.vaultCollateralBuyForFlareFactorBIPS);
+        _burnedNatWei = Conversion.convert(_amountVaultCollateralWei, vaultCollateral, poolCollateral).mulBips(
+            settings.vaultCollateralBuyForFlareFactorBIPS
+        );
         // Transfer vault collateral to the agent vault owner
         vault.payout(vaultCollateral.token, Agents.getOwnerPayAddress(_agent), _amountVaultCollateralWei);
         // Burn the NAT equivalent (must be provided with the call).

@@ -6,9 +6,7 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {GovernedUUPSProxyImplementation} from "../../governance/implementation/GovernedUUPSProxyImplementation.sol";
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 
-
 contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentOwnerRegistry {
-
     event ManagerChanged(address manager);
 
     error AddressZero();
@@ -30,13 +28,13 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
     mapping(address => string) private agentIconUrl;
     mapping(address => string) private agentTouUrl;
 
-    modifier onlyGovernanceOrManager {
+    modifier onlyGovernanceOrManager() {
         require(msg.sender == manager || msg.sender == governance(), OnlyGovernanceOrManager());
         _;
     }
 
     function initialize(IGovernanceSettings _governanceSettings, address _initialGovernance) external {
-        initialise(_governanceSettings, _initialGovernance);    // also marks as initialized
+        initialise(_governanceSettings, _initialGovernance); // also marks as initialized
     }
 
     function revokeAddress(address _address) external onlyGovernanceOrManager {
@@ -64,10 +62,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
         string memory _description,
         string memory _iconUrl,
         string memory _touUrl
-    )
-        external
-        onlyGovernanceOrManager
-    {
+    ) external onlyGovernanceOrManager {
         _addAddressToWhitelist(_managementAddress);
         _setAgentData(_managementAddress, _name, _description, _iconUrl, _touUrl);
     }
@@ -78,12 +73,11 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * one stops working.
      * NOTE: May only be called by an agent on the allowed agent list and only from the management address.
      */
-    function setWorkAddress(address _ownerWorkAddress)
-        external
-    {
+    function setWorkAddress(address _ownerWorkAddress) external {
         require(isWhitelisted(msg.sender), AgentNotWhitelisted());
-        require(_ownerWorkAddress == address(0) || workToMgmtAddress[_ownerWorkAddress] == address(0),
-               WorkAddressInUse());
+        require(
+            _ownerWorkAddress == address(0) || workToMgmtAddress[_ownerWorkAddress] == address(0), WorkAddressInUse()
+        );
         // delete old work to management mapping
         address oldWorkAddress = mgmtToWorkAddress[msg.sender];
         if (oldWorkAddress != address(0)) {
@@ -102,10 +96,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * @param _managementAddress agent owner's management address
      * @param _name new agent owner's name
      */
-    function setAgentName(address _managementAddress, string memory _name)
-        external
-        onlyGovernanceOrManager
-    {
+    function setAgentName(address _managementAddress, string memory _name) external onlyGovernanceOrManager {
         agentName[_managementAddress] = _name;
         _emitDataChanged(_managementAddress);
     }
@@ -128,10 +119,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * @param _managementAddress agent owner's management address
      * @param _iconUrl new url of the agent owner's icon
      */
-    function setAgentIconUrl(address _managementAddress, string memory _iconUrl)
-        external
-        onlyGovernanceOrManager
-    {
+    function setAgentIconUrl(address _managementAddress, string memory _iconUrl) external onlyGovernanceOrManager {
         agentIconUrl[_managementAddress] = _iconUrl;
         _emitDataChanged(_managementAddress);
     }
@@ -153,10 +141,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * Return agent owner's name.
      * @param _managementAddress agent owner's management address
      */
-    function getAgentName(address _managementAddress)
-        external view override
-        returns (string memory)
-    {
+    function getAgentName(address _managementAddress) external view override returns (string memory) {
         return agentName[_managementAddress];
     }
 
@@ -164,10 +149,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * Return agent owner's description.
      * @param _managementAddress agent owner's management address
      */
-    function getAgentDescription(address _managementAddress)
-        external view override
-        returns (string memory)
-    {
+    function getAgentDescription(address _managementAddress) external view override returns (string memory) {
         return agentDescription[_managementAddress];
     }
 
@@ -175,10 +157,7 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * Return url of the agent owner's icon.
      * @param _managementAddress agent owner's management address
      */
-    function getAgentIconUrl(address _managementAddress)
-        external view override
-        returns (string memory)
-    {
+    function getAgentIconUrl(address _managementAddress) external view override returns (string memory) {
         return agentIconUrl[_managementAddress];
     }
 
@@ -186,30 +165,21 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
      * Return url of the agent's page with terms of use.
      * @param _managementAddress agent owner's management address
      */
-    function getAgentTermsOfUseUrl(address _managementAddress)
-        external view override
-        returns (string memory)
-    {
+    function getAgentTermsOfUseUrl(address _managementAddress) external view override returns (string memory) {
         return agentTouUrl[_managementAddress];
     }
 
     /**
      * Get the (unique) work address for the given management address.
      */
-    function getWorkAddress(address _managementAddress)
-        external view override
-        returns (address)
-    {
+    function getWorkAddress(address _managementAddress) external view override returns (address) {
         return mgmtToWorkAddress[_managementAddress];
     }
 
     /**
      * Get the (unique) management address for the given work address.
      */
-    function getManagementAddress(address _workAddress)
-        external view override
-        returns (address)
-    {
+    function getManagementAddress(address _workAddress) external view override returns (address) {
         return workToMgmtAddress[_workAddress];
     }
 
@@ -245,21 +215,19 @@ contract AgentOwnerRegistry is GovernedUUPSProxyImplementation, IERC165, IAgentO
     }
 
     function _emitDataChanged(address _managementAddress) private {
-        emit AgentDataChanged(_managementAddress,
+        emit AgentDataChanged(
+            _managementAddress,
             agentName[_managementAddress],
             agentDescription[_managementAddress],
             agentIconUrl[_managementAddress],
-            agentTouUrl[_managementAddress]);
+            agentTouUrl[_managementAddress]
+        );
     }
 
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        public pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IAgentOwnerRegistry).interfaceId;
+    function supportsInterface(bytes4 _interfaceId) public pure override returns (bool) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IAgentOwnerRegistry).interfaceId;
     }
 }

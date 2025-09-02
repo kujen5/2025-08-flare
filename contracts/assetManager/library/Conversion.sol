@@ -9,7 +9,6 @@ import {Globals} from "./Globals.sol";
 import {CollateralTypeInt} from "./data/CollateralTypeInt.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 
-
 library Conversion {
     using SafePct for uint256;
 
@@ -18,29 +17,18 @@ library Conversion {
     uint256 internal constant NAT_WEI = 1e18;
     uint256 internal constant GWEI = 1e9;
 
-    function currentAmgPriceInTokenWei(
-        uint256 _tokenType
-    )
-        internal view
-        returns (uint256 _price)
-    {
+    function currentAmgPriceInTokenWei(uint256 _tokenType) internal view returns (uint256 _price) {
         AssetManagerState.State storage state = AssetManagerState.get();
         (_price,,) = currentAmgPriceInTokenWeiWithTs(state.collateralTokens[_tokenType], false);
     }
 
-    function currentAmgPriceInTokenWei(
-        CollateralTypeInt.Data storage _token
-    )
-        internal view
-        returns (uint256 _price)
-    {
+    function currentAmgPriceInTokenWei(CollateralTypeInt.Data storage _token) internal view returns (uint256 _price) {
         (_price,,) = currentAmgPriceInTokenWeiWithTs(_token, false);
     }
 
-    function currentAmgPriceInTokenWeiWithTrusted(
-        CollateralTypeInt.Data storage _token
-    )
-        internal view
+    function currentAmgPriceInTokenWeiWithTrusted(CollateralTypeInt.Data storage _token)
+        internal
+        view
         returns (uint256 _ftsoPrice, uint256 _trustedPrice)
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -49,58 +37,33 @@ library Conversion {
         (uint256 trustedPrice, uint256 assetTimestampTrusted, uint256 tokenTimestampTrusted) =
             currentAmgPriceInTokenWeiWithTs(_token, true);
         bool trustedPriceFresh = tokenTimestampTrusted + settings.maxTrustedPriceAgeSeconds >= tokenTimestamp
-                && assetTimestampTrusted + settings.maxTrustedPriceAgeSeconds >= assetTimestamp;
+            && assetTimestampTrusted + settings.maxTrustedPriceAgeSeconds >= assetTimestamp;
         _ftsoPrice = ftsoPrice;
         _trustedPrice = trustedPriceFresh ? trustedPrice : ftsoPrice;
     }
 
-    function convertAmgToUBA(
-        uint64 _valueAMG
-    )
-        internal view
-        returns (uint256)
-    {
+    function convertAmgToUBA(uint64 _valueAMG) internal view returns (uint256) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // safe multiplication - both values are 64 bit
         return uint256(_valueAMG) * settings.assetMintingGranularityUBA;
     }
 
-    function convertUBAToAmg(
-        uint256 _valueUBA
-    )
-        internal view
-        returns (uint64)
-    {
+    function convertUBAToAmg(uint256 _valueUBA) internal view returns (uint64) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return SafeCast.toUint64(_valueUBA / settings.assetMintingGranularityUBA);
     }
 
-    function roundUBAToAmg(
-        uint256 _valueUBA
-    )
-        internal view
-        returns (uint256)
-    {
+    function roundUBAToAmg(uint256 _valueUBA) internal view returns (uint256) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return _valueUBA - (_valueUBA % settings.assetMintingGranularityUBA);
     }
 
-    function convertLotsToAMG(
-        uint256 _lots
-    )
-        internal view
-        returns (uint64)
-    {
+    function convertLotsToAMG(uint256 _lots) internal view returns (uint64) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         return SafeCast.toUint64(_lots * settings.lotSizeAMG);
     }
 
-    function convertLotsToUBA(
-        uint256 _lots
-    )
-        internal view
-        returns (uint256)
-    {
+    function convertLotsToUBA(uint256 _lots) internal view returns (uint256) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         // this should not overflow - all values are 64 bit (except _lots which is limited by minted lots)
         return _lots * settings.lotSizeAMG * settings.assetMintingGranularityUBA;
@@ -110,20 +73,15 @@ library Conversion {
         uint256 _amount,
         CollateralTypeInt.Data storage _fromToken,
         CollateralTypeInt.Data storage _toToken
-    )
-        internal view
-        returns (uint256)
-    {
+    ) internal view returns (uint256) {
         uint256 priceMul = currentAmgPriceInTokenWei(_toToken);
         uint256 priceDiv = currentAmgPriceInTokenWei(_fromToken);
         return _amount.mulDiv(priceMul, priceDiv);
     }
 
-    function convertFromUSD5(
-        uint256 _amountUSD5,
-        CollateralTypeInt.Data storage _token
-    )
-        internal view
+    function convertFromUSD5(uint256 _amountUSD5, CollateralTypeInt.Data storage _token)
+        internal
+        view
         returns (uint256)
     {
         // if tokenFtsoSymbol is empty, it is assumed that the token is a USD-like stablecoin
@@ -137,12 +95,10 @@ library Conversion {
         return _amountUSD5.mulDiv(10 ** expPlus, tokenPrice);
     }
 
-    function currentAmgPriceInTokenWeiWithTs(
-        CollateralTypeInt.Data storage _token,
-        bool _fromTrustedProviders
-    )
-        internal view
-        returns (uint256 /*_price*/, uint256 /*_assetTimestamp*/, uint256 /*_tokenTimestamp*/)
+    function currentAmgPriceInTokenWeiWithTs(CollateralTypeInt.Data storage _token, bool _fromTrustedProviders)
+        internal
+        view
+        returns (uint256, /*_price*/ uint256, /*_assetTimestamp*/ uint256 /*_tokenTimestamp*/ )
     {
         (uint256 assetPrice, uint256 assetTs, uint256 assetFtsoDec) =
             readFtsoPrice(_token.assetFtsoSymbol, _fromTrustedProviders);
@@ -152,14 +108,14 @@ library Conversion {
         } else {
             (uint256 tokenPrice, uint256 tokenTs, uint256 tokenFtsoDec) =
                 readFtsoPrice(_token.tokenFtsoSymbol, _fromTrustedProviders);
-            uint256 price =
-                calcAmgToTokenWeiPrice(_token.decimals, tokenPrice, tokenFtsoDec, assetPrice, assetFtsoDec);
+            uint256 price = calcAmgToTokenWeiPrice(_token.decimals, tokenPrice, tokenFtsoDec, assetPrice, assetFtsoDec);
             return (price, assetTs, tokenTs);
         }
     }
 
     function readFtsoPrice(string memory _symbol, bool _fromTrustedProviders)
-        internal view
+        internal
+        view
         returns (uint256, uint256, uint256)
     {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
@@ -177,10 +133,7 @@ library Conversion {
         uint256 _tokenFtsoDecimals,
         uint256 _assetPrice,
         uint256 _assetFtsoDecimals
-    )
-        internal view
-        returns (uint256)
-    {
+    ) internal view returns (uint256) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
         uint256 expPlus = _tokenDecimals + _tokenFtsoDecimals + AMG_TOKEN_WEI_PRICE_SCALE_EXP;
         uint256 expMinus = settings.assetMintingDecimals + _assetFtsoDecimals;

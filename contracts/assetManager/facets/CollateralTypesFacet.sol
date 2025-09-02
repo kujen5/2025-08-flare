@@ -13,7 +13,6 @@ import {CollateralType} from "../../userInterfaces/data/CollateralType.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 
-
 contract CollateralTypesFacet is AssetManagerBase {
     using SafeCast for uint256;
 
@@ -24,12 +23,7 @@ contract CollateralTypesFacet is AssetManagerBase {
      * Add new vault collateral type (new token type and initial collateral ratios).
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function addCollateralType(
-        CollateralType.Data calldata _data
-    )
-        external
-        onlyAssetManagerController
-    {
+    function addCollateralType(CollateralType.Data calldata _data) external onlyAssetManagerController {
         CollateralTypes.add(_data);
     }
 
@@ -42,24 +36,21 @@ contract CollateralTypesFacet is AssetManagerBase {
         IERC20 _token,
         uint256 _minCollateralRatioBIPS,
         uint256 _safetyMinCollateralRatioBIPS
-    )
-        external
-        onlyAssetManagerController
-    {
+    ) external onlyAssetManagerController {
         // use separate rate limit for each collateral type
         bytes32 actionKey = keccak256(abi.encode(msg.sig, _collateralClass, _token));
         SettingsUpdater.checkEnoughTimeSinceLastUpdate(actionKey);
         // validate
         bool ratiosValid =
-            SafePct.MAX_BIPS < _minCollateralRatioBIPS &&
-            _minCollateralRatioBIPS <= _safetyMinCollateralRatioBIPS;
+            SafePct.MAX_BIPS < _minCollateralRatioBIPS && _minCollateralRatioBIPS <= _safetyMinCollateralRatioBIPS;
         require(ratiosValid, CollateralTypes.InvalidCollateralRatios());
         // update
         CollateralTypeInt.Data storage token = CollateralTypes.get(_collateralClass, _token);
         token.minCollateralRatioBIPS = _minCollateralRatioBIPS.toUint32();
         token.safetyMinCollateralRatioBIPS = _safetyMinCollateralRatioBIPS.toUint32();
-        emit IAssetManagerEvents.CollateralRatiosChanged(uint8(_collateralClass), address(_token),
-            _minCollateralRatioBIPS, _safetyMinCollateralRatioBIPS);
+        emit IAssetManagerEvents.CollateralRatiosChanged(
+            uint8(_collateralClass), address(_token), _minCollateralRatioBIPS, _safetyMinCollateralRatioBIPS
+        );
     }
 
     /**
@@ -68,11 +59,7 @@ contract CollateralTypesFacet is AssetManagerBase {
      * that still use it as collateral will be liquidated.
      * NOTE: may not be called directly - only through asset manager controller by governance.
      */
-    function deprecateCollateralType(
-        CollateralType.Class _collateralClass,
-        IERC20 _token,
-        uint256 _invalidationTimeSec
-    )
+    function deprecateCollateralType(CollateralType.Class _collateralClass, IERC20 _token, uint256 _invalidationTimeSec)
         external
         onlyAssetManagerController
     {
@@ -90,11 +77,9 @@ contract CollateralTypesFacet is AssetManagerBase {
     /**
      * Get collateral  information about a token.
      */
-    function getCollateralType(
-        CollateralType.Class _collateralClass,
-        IERC20 _token
-    )
-        external view
+    function getCollateralType(CollateralType.Class _collateralClass, IERC20 _token)
+        external
+        view
         returns (CollateralType.Data memory)
     {
         return CollateralTypes.getInfo(_collateralClass, _token);
@@ -103,10 +88,7 @@ contract CollateralTypesFacet is AssetManagerBase {
     /**
      * Get the list of all available and deprecated tokens used for collateral.
      */
-    function getCollateralTypes()
-        external view
-        returns (CollateralType.Data[] memory _collateralTypes)
-    {
+    function getCollateralTypes() external view returns (CollateralType.Data[] memory _collateralTypes) {
         return CollateralTypes.getAllInfos();
     }
 }

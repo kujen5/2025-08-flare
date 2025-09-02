@@ -52,16 +52,13 @@ contract FtsoV2PriceStoreHandler is Test {
         ftsoV2PriceStore.updateSettings(fixedFeedIds, fixedSymbols, fixedTrustedDecimals, 1000);
     }
 
-    function submitTrustedPrices(
-        uint32[4] memory values
-    ) public {
+    function submitTrustedPrices(uint32[4] memory values) public {
         uint8 numFeeds = 4;
         uint32 votingRoundId = _getPreviousVotingEpochId();
         uint256 startTimestamp = _getEndTimestamp(votingRoundId);
         vm.warp(startTimestamp + 1);
 
-        IPricePublisher.TrustedProviderFeed[] memory trustedFeeds =
-            new IPricePublisher.TrustedProviderFeed[](numFeeds);
+        IPricePublisher.TrustedProviderFeed[] memory trustedFeeds = new IPricePublisher.TrustedProviderFeed[](numFeeds);
         for (uint256 i = 0; i < numFeeds; i++) {
             trustedFeeds[i] = IPricePublisher.TrustedProviderFeed({
                 id: fixedFeedIds[i],
@@ -75,10 +72,7 @@ contract FtsoV2PriceStoreHandler is Test {
         vm.warp(block.timestamp + 10);
     }
 
-    function publishPrices(
-        uint32[4] memory values,
-        int8[4] memory decimals
-    ) public {
+    function publishPrices(uint32[4] memory values, int8[4] memory decimals) public {
         uint8 numFeeds = 4;
         uint32 votingRoundId = ftsoV2PriceStore.lastPublishedVotingRoundId() + 1;
 
@@ -91,7 +85,7 @@ contract FtsoV2PriceStoreHandler is Test {
         bytes32[] memory leaves = new bytes32[](numFeeds);
 
         for (uint256 i = 0; i < numFeeds; i++) {
-            values[i] = uint32(bound(values[i], 0, type(uint32).max/2));
+            values[i] = uint32(bound(values[i], 0, type(uint32).max / 2));
             decimals[i] = int8(bound(decimals[i], -18, 18)); // common decimal range
             IPricePublisher.Feed memory feed = IPricePublisher.Feed({
                 id: fixedFeedIds[i],
@@ -150,11 +144,11 @@ contract FtsoV2PriceStoreHandler is Test {
         return a < b ? keccak256(abi.encodePacked(a, b)) : keccak256(abi.encodePacked(b, a));
     }
 
-    function _getPreviousVotingEpochId() internal view returns(uint32) {
+    function _getPreviousVotingEpochId() internal view returns (uint32) {
         return uint32((block.timestamp - firstVotingRoundStartTs) / votingEpochDurationSeconds) - 1;
     }
 
-    function _getEndTimestamp(uint256 _votingEpochId) internal view returns(uint256) {
+    function _getEndTimestamp(uint256 _votingEpochId) internal view returns (uint256) {
         return firstVotingRoundStartTs + (_votingEpochId + 1) * votingEpochDurationSeconds;
     }
 }

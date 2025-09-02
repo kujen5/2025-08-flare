@@ -5,7 +5,7 @@ pragma solidity ^0.8.27;
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract TestUUPSProxyImpl is UUPSUpgradeable {
-    uint256[1000] private _dummy;  // skip original storage
+    uint256[1000] private _dummy; // skip original storage
     string private message;
     bool private initialized;
 

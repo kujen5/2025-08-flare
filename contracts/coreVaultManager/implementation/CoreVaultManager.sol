@@ -10,19 +10,14 @@ import {IICoreVaultManager} from "../interfaces/IICoreVaultManager.sol";
 import {IFdcVerification, IPayment} from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerification.sol";
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 import {GovernedBase} from "../../governance/implementation/GovernedBase.sol";
-import {IIAddressUpdatable}
-    from "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
+import {IIAddressUpdatable} from
+    "@flarenetwork/flare-periphery-contracts/flare/addressUpdater/interfaces/IIAddressUpdatable.sol";
 
 // import is needed for @inheritdoc
 import {ICoreVaultManager} from "../../userInterfaces/ICoreVaultManager.sol"; // solhint-disable-line no-unused-import
 
 //solhint-disable-next-line max-states-count
-contract CoreVaultManager is
-    GovernedUUPSProxyImplementation,
-    AddressUpdatable,
-    IICoreVaultManager,
-    IERC165
-{
+contract CoreVaultManager is GovernedUUPSProxyImplementation, AddressUpdatable, IICoreVaultManager, IERC165 {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
@@ -107,11 +102,7 @@ contract CoreVaultManager is
         _;
     }
 
-    constructor()
-        GovernedUUPSProxyImplementation()
-        AddressUpdatable(address(0))
-    {
-    }
+    constructor() GovernedUUPSProxyImplementation() AddressUpdatable(address(0)) {}
 
     /**
      * Proxyable initialization method. Can be called only once, from the proxy constructor
@@ -126,9 +117,7 @@ contract CoreVaultManager is
         string memory _custodianAddress,
         string memory _coreVaultAddress,
         uint256 _nextSequenceNumber
-    )
-        external
-    {
+    ) external {
         require(_assetManager != address(0), InvalidAddress());
         require(_chainId != bytes32(0), InvalidChain());
         require(bytes(_custodianAddress).length > 0, InvalidAddress());
@@ -149,11 +138,7 @@ contract CoreVaultManager is
     /**
      * @inheritdoc ICoreVaultManager
      */
-    function confirmPayment(
-        IPayment.Proof calldata _proof
-    )
-        external
-    {
+    function confirmPayment(IPayment.Proof calldata _proof) external {
         require(_proof.data.responseBody.status == 0, PaymentFailed()); // 0 = payment success
         require(_proof.data.sourceId == chainId, InvalidChain());
         require(fdcVerification.verifyPayment(_proof), PaymentNotProven());
@@ -164,9 +149,7 @@ contract CoreVaultManager is
             confirmedPayments[_proof.data.requestBody.transactionId] = true;
             availableFunds += receivedAmount;
             emit PaymentConfirmed(
-                _proof.data.requestBody.transactionId,
-                _proof.data.responseBody.standardPaymentReference,
-                receivedAmount
+                _proof.data.requestBody.transactionId, _proof.data.responseBody.standardPaymentReference, receivedAmount
             );
         }
     }
@@ -179,11 +162,7 @@ contract CoreVaultManager is
         bytes32 _paymentReference,
         uint128 _amount,
         bool _cancelable
-    )
-        external
-        onlyAssetManager notPaused
-        returns (bytes32)
-    {
+    ) external onlyAssetManager notPaused returns (bytes32) {
         require(_amount > 0, AmountZero());
         require(allowedDestinationAddressIndex[_destinationAddress] != 0, DestinationNotAllowed());
         bytes32 destinationAddressHash = keccak256(bytes(_destinationAddress));
@@ -204,7 +183,7 @@ contract CoreVaultManager is
                 if (keccak256(bytes(req.destinationAddress)) == destinationAddressHash) {
                     // add the amount to the existing request
                     req.amount += _amount;
-                    _paymentReference = req.paymentReference;   // use the old payment reference when merged
+                    _paymentReference = req.paymentReference; // use the old payment reference when merged
                     break;
                 }
                 index++;
@@ -234,12 +213,7 @@ contract CoreVaultManager is
     /**
      * @inheritdoc IICoreVaultManager
      */
-    function cancelTransferRequestFromCoreVault(
-        string memory _destinationAddress
-    )
-        external
-        onlyAssetManager
-    {
+    function cancelTransferRequestFromCoreVault(string memory _destinationAddress) external onlyAssetManager {
         bytes32 destinationAddressHash = keccak256(bytes(_destinationAddress));
         uint256 index = 0;
         while (index < cancelableTransferRequests.length) {
@@ -249,7 +223,7 @@ contract CoreVaultManager is
             }
             index++;
         }
-        require (index < cancelableTransferRequests.length, NotFound());
+        require(index < cancelableTransferRequests.length, NotFound());
         uint256 transferRequestId = cancelableTransferRequests[index];
         TransferRequest storage req = transferRequestById[transferRequestId];
         uint128 amount = req.amount;
@@ -257,7 +231,8 @@ contract CoreVaultManager is
         emit TransferRequestCanceled(_destinationAddress, req.paymentReference, amount);
 
         // remove the transfer request - keep the order
-        while (index < cancelableTransferRequests.length - 1) { // length > 0
+        while (index < cancelableTransferRequests.length - 1) {
+            // length > 0
             cancelableTransferRequests[index] = cancelableTransferRequests[index + 1]; // shift left
             index++;
         }
@@ -303,7 +278,8 @@ contract CoreVaultManager is
                 );
                 _numberOfInstructions++;
                 // remove the transfer request - keep the order
-                for (uint256 i = index; i < length - 1; i++) { // length > 0
+                for (uint256 i = index; i < length - 1; i++) {
+                    // length > 0
                     cancelableTransferRequests[i] = cancelableTransferRequests[i + 1]; // shift left
                 }
                 cancelableTransferRequests.pop(); // remove the last element
@@ -335,7 +311,8 @@ contract CoreVaultManager is
                 );
                 _numberOfInstructions++;
                 // remove the transfer request - keep the order
-                for (uint256 i = index; i < length - 1; i++) { // length > 0
+                for (uint256 i = index; i < length - 1; i++) {
+                    // length > 0
                     nonCancelableTransferRequests[i] = nonCancelableTransferRequests[i + 1]; // shift left
                 }
                 nonCancelableTransferRequests.pop(); // remove the last element
@@ -401,12 +378,7 @@ contract CoreVaultManager is
      * @param _allowedDestinationAddresses List of allowed destination addresses to add.
      * NOTE: may only be called by the governance.
      */
-    function addAllowedDestinationAddresses(
-        string[] calldata _allowedDestinationAddresses
-    )
-        external
-        onlyGovernance
-    {
+    function addAllowedDestinationAddresses(string[] calldata _allowedDestinationAddresses) external onlyGovernance {
         for (uint256 i = 0; i < _allowedDestinationAddresses.length; i++) {
             require(bytes(_allowedDestinationAddresses[i]).length > 0, InvalidAddress());
             if (allowedDestinationAddressIndex[_allowedDestinationAddresses[i]] != 0) {
@@ -423,9 +395,7 @@ contract CoreVaultManager is
      * @param _allowedDestinationAddresses List of allowed destination addresses to remove.
      * NOTE: may only be called by the governance.
      */
-    function removeAllowedDestinationAddresses(
-        string[] calldata _allowedDestinationAddresses
-    )
+    function removeAllowedDestinationAddresses(string[] calldata _allowedDestinationAddresses)
         external
         onlyGovernance
     {
@@ -451,12 +421,7 @@ contract CoreVaultManager is
      * @param _triggeringAccounts List of triggering accounts to add.
      * NOTE: may only be called by the governance.
      */
-    function addTriggeringAccounts(
-        address[] calldata _triggeringAccounts
-    )
-        external
-        onlyGovernance
-    {
+    function addTriggeringAccounts(address[] calldata _triggeringAccounts) external onlyGovernance {
         for (uint256 i = 0; i < _triggeringAccounts.length; i++) {
             if (triggeringAccounts.add(_triggeringAccounts[i])) {
                 emit TriggeringAccountAdded(_triggeringAccounts[i]);
@@ -469,12 +434,7 @@ contract CoreVaultManager is
      * @param _triggeringAccounts List of triggering accounts to remove.
      * NOTE: may only be called by the governance.
      */
-    function removeTriggeringAccounts(
-        address[] calldata _triggeringAccounts
-    )
-        external
-        onlyGovernance
-    {
+    function removeTriggeringAccounts(address[] calldata _triggeringAccounts) external onlyGovernance {
         for (uint256 i = 0; i < _triggeringAccounts.length; i++) {
             if (triggeringAccounts.remove(_triggeringAccounts[i])) {
                 emit TriggeringAccountRemoved(_triggeringAccounts[i]);
@@ -487,12 +447,7 @@ contract CoreVaultManager is
      * @param _custodianAddress Custodian address.
      * NOTE: may only be called by the governance.
      */
-    function updateCustodianAddress(
-        string calldata _custodianAddress
-    )
-        external
-        onlyGovernance
-    {
+    function updateCustodianAddress(string calldata _custodianAddress) external onlyGovernance {
         require(bytes(_custodianAddress).length > 0, InvalidAddress());
         custodianAddress = _custodianAddress;
         emit CustodianAddressUpdated(_custodianAddress);
@@ -506,12 +461,7 @@ contract CoreVaultManager is
      * @param _fee Fee.
      * NOTE: may only be called by the governance.
      */
-    function updateSettings(
-        uint128 _escrowEndTimeSeconds,
-        uint128 _escrowAmount,
-        uint128 _minimalAmount,
-        uint128 _fee
-    )
+    function updateSettings(uint128 _escrowEndTimeSeconds, uint128 _escrowAmount, uint128 _minimalAmount, uint128 _fee)
         external
         onlyGovernance
     {
@@ -529,15 +479,9 @@ contract CoreVaultManager is
      * @param _preimageHashes List of preimage hashes.
      * NOTE: may only be called by the governance.
      */
-    function addPreimageHashes(
-        bytes32[] calldata _preimageHashes
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function addPreimageHashes(bytes32[] calldata _preimageHashes) external onlyImmediateGovernance {
         for (uint256 i = 0; i < _preimageHashes.length; i++) {
-            require(_preimageHashes[i] != bytes32(0) && preimageHashes.add(_preimageHashes[i]),
-                InvalidPreimageHash());
+            require(_preimageHashes[i] != bytes32(0) && preimageHashes.add(_preimageHashes[i]), InvalidPreimageHash());
             emit PreimageHashAdded(_preimageHashes[i]);
         }
     }
@@ -547,12 +491,7 @@ contract CoreVaultManager is
      * @param _maxCount Maximum number of preimage hashes to remove.
      * NOTE: may only be called by the governance.
      */
-    function removeUnusedPreimageHashes(
-        uint256 _maxCount
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function removeUnusedPreimageHashes(uint256 _maxCount) external onlyImmediateGovernance {
         uint256 index = preimageHashes.length();
         while (_maxCount > 0 && index > nextUnusedPreimageHashIndex) {
             bytes32 preimageHash = preimageHashes.at(--index);
@@ -567,12 +506,7 @@ contract CoreVaultManager is
      * @param _preimageHashes List of preimage hashes.
      * NOTE: may only be called by the governance.
      */
-    function setEscrowsFinished(
-        bytes32[] calldata _preimageHashes
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function setEscrowsFinished(bytes32[] calldata _preimageHashes) external onlyImmediateGovernance {
         uint128 availableFundsTmp = availableFunds;
         uint128 escrowedFundsTmp = escrowedFunds;
         for (uint256 i = 0; i < _preimageHashes.length; i++) {
@@ -596,12 +530,9 @@ contract CoreVaultManager is
      * @param _addresses List of emergency pause senders to add.
      * NOTE: may only be called by the governance.
      */
-    function addEmergencyPauseSenders(address[] calldata _addresses)
-        external
-        onlyImmediateGovernance
-    {
+    function addEmergencyPauseSenders(address[] calldata _addresses) external onlyImmediateGovernance {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            if(emergencyPauseSenders.add(_addresses[i])) {
+            if (emergencyPauseSenders.add(_addresses[i])) {
                 emit EmergencyPauseSenderAdded(_addresses[i]);
             }
         }
@@ -612,10 +543,7 @@ contract CoreVaultManager is
      * @param _addresses List of emergency pause senders to remove.
      * NOTE: may only be called by the governance.
      */
-    function removeEmergencyPauseSenders(address[] calldata _addresses)
-        external
-        onlyImmediateGovernance
-    {
+    function removeEmergencyPauseSenders(address[] calldata _addresses) external onlyImmediateGovernance {
         for (uint256 i = 0; i < _addresses.length; i++) {
             if (emergencyPauseSenders.remove(_addresses[i])) {
                 emit EmergencyPauseSenderRemoved(_addresses[i]);
@@ -647,24 +575,16 @@ contract CoreVaultManager is
      * NOTE: may only be called by the governance.
      */
     function triggerCustomInstructions(bytes32 _instructionsHash) external onlyImmediateGovernance {
-        emit CustomInstructions(
-            nextSequenceNumber++,
-            coreVaultAddress,
-            _instructionsHash
-        );
+        emit CustomInstructions(nextSequenceNumber++, coreVaultAddress, _instructionsHash);
     }
 
     /**
      * @inheritdoc ICoreVaultManager
      */
     function getSettings()
-        external view
-        returns (
-            uint128 _escrowEndTimeSeconds,
-            uint128 _escrowAmount,
-            uint128 _minimalAmount,
-            uint128 _fee
-        )
+        external
+        view
+        returns (uint128 _escrowEndTimeSeconds, uint128 _escrowAmount, uint128 _minimalAmount, uint128 _fee)
     {
         return (escrowEndTimeSeconds, escrowAmount, minimalAmount, fee);
     }
@@ -773,8 +693,8 @@ contract CoreVaultManager is
      * @inheritdoc ICoreVaultManager
      */
     function totalRequestAmountWithFee() public view returns (uint256) {
-        return nonCancelableTransferRequestsAmount + cancelableTransferRequestsAmount +
-            (cancelableTransferRequests.length + nonCancelableTransferRequests.length) * fee;
+        return nonCancelableTransferRequestsAmount + cancelableTransferRequestsAmount
+            + (cancelableTransferRequests.length + nonCancelableTransferRequests.length) * fee;
     }
 
     /**
@@ -790,26 +710,20 @@ contract CoreVaultManager is
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        external pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IIAddressUpdatable).interfaceId
+    function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IIAddressUpdatable).interfaceId
             || _interfaceId == type(IICoreVaultManager).interfaceId;
     }
 
     /**
      * @inheritdoc AddressUpdatable
      */
-    function _updateContractAddresses(
-        bytes32[] memory _contractNameHashes,
-        address[] memory _contractAddresses
-    )
-        internal override
+    function _updateContractAddresses(bytes32[] memory _contractNameHashes, address[] memory _contractAddresses)
+        internal
+        override
     {
-        fdcVerification = IFdcVerification(
-            _getContractAddress(_contractNameHashes, _contractAddresses, "FdcVerification"));
+        fdcVerification =
+            IFdcVerification(_getContractAddress(_contractNameHashes, _contractAddresses, "FdcVerification"));
     }
 
     /**
@@ -822,9 +736,10 @@ contract CoreVaultManager is
         uint128 escrowedFundsTmp = escrowedFunds;
         // process all expired or finished escrows
         uint256 index = nextUnprocessedEscrowIndex;
-        while (_maxCount > 0 && index < escrows.length &&
-            (escrows[index].expiryTs <= block.timestamp || escrows[index].finished))
-        {
+        while (
+            _maxCount > 0 && index < escrows.length
+                && (escrows[index].expiryTs <= block.timestamp || escrows[index].finished)
+        ) {
             if (!escrows[index].finished) {
                 // if the escrow is not finished, add the amount to the available funds
                 Escrow storage escrow = escrows[index];
@@ -841,8 +756,8 @@ contract CoreVaultManager is
         availableFunds = availableFundsTmp;
         escrowedFunds = escrowedFundsTmp;
 
-        _allProcessed = _maxCount > 0 || index == escrows.length ||
-            (escrows[index].expiryTs > block.timestamp && !escrows[index].finished);
+        _allProcessed = _maxCount > 0 || index == escrows.length
+            || (escrows[index].expiryTs > block.timestamp && !escrows[index].finished);
         if (!_allProcessed) {
             emit NotAllEscrowsProcessed();
         }
@@ -875,7 +790,8 @@ contract CoreVaultManager is
         escrowEndTimestamp += 1 days;
         // slither-disable-next-line weak-prng
         escrowEndTimestamp = escrowEndTimestamp - (escrowEndTimestamp % 1 days) + escrowEndTimeSeconds;
-        if (escrowEndTimestamp <= block.timestamp + 12 hours) { // less than 12 hours from now, move to the next day
+        if (escrowEndTimestamp <= block.timestamp + 12 hours) {
+            // less than 12 hours from now, move to the next day
             escrowEndTimestamp += 1 days;
         }
         return uint64(escrowEndTimestamp);

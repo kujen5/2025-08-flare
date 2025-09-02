@@ -4,7 +4,6 @@ pragma solidity ^0.8.27;
 import {MerkleTree} from "../library/MerkleTree.sol";
 
 contract MerkleTreeMock {
-
     function calculateMerkleRoot(bytes32[] memory _leaves) external pure returns (bytes32) {
         return MerkleTree.calculateMerkleRoot(_leaves);
     }

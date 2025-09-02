@@ -4,10 +4,10 @@ pragma solidity ^0.8.27;
 
 import {IFdcHub} from "@flarenetwork/flare-periphery-contracts/flare/IFdcHub.sol";
 import {FdcRequestFeeConfigurationsMock} from "./FdcRequestFeeConfigurationsMock.sol";
-import {IFdcRequestFeeConfigurations}
-    from "@flarenetwork/flare-periphery-contracts/flare/IFdcRequestFeeConfigurations.sol";
-import {IFdcInflationConfigurations}
-    from "@flarenetwork/flare-periphery-contracts/flare/IFdcInflationConfigurations.sol";
+import {IFdcRequestFeeConfigurations} from
+    "@flarenetwork/flare-periphery-contracts/flare/IFdcRequestFeeConfigurations.sol";
+import {IFdcInflationConfigurations} from
+    "@flarenetwork/flare-periphery-contracts/flare/IFdcInflationConfigurations.sol";
 
 contract FdcHubMock is IFdcHub {
     /// The FDC request fee configurations contract.
@@ -17,7 +17,7 @@ contract FdcHubMock is IFdcHub {
         fdcRequestFeeConfigurations = new FdcRequestFeeConfigurationsMock();
     }
 
-     /**
+    /**
      * Method to request an attestation.
      * @param _data ABI encoded attestation request
      */
@@ -35,5 +35,5 @@ contract FdcHubMock is IFdcHub {
     /**
      * The FDC inflation configurations contract.
      */
-    function fdcInflationConfigurations() external view returns(IFdcInflationConfigurations) {}
+    function fdcInflationConfigurations() external view returns (IFdcInflationConfigurations) {}
 }

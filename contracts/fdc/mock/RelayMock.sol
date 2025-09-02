@@ -4,9 +4,7 @@ pragma solidity ^0.8.27;
 
 import {IRelay} from "@flarenetwork/flare-periphery-contracts/flare/IRelay.sol";
 
-
 contract RelayMock is IRelay {
-
     /// The merkle root for given protocol id and voting round id.
     //slither-disable-next-line uninitialized-state
     mapping(uint256 protocolId => mapping(uint256 votingRoundId => bytes32)) private merkleRootsPrivate;
@@ -37,12 +35,10 @@ contract RelayMock is IRelay {
      * @return _randomTimestamp The timestamp of the random number.
      */
     function getRandomNumber()
-        external view
-        returns (
-            uint256 _randomNumber,
-            bool _isSecureRandom,
-            uint256 _randomTimestamp
-        ) {}
+        external
+        view
+        returns (uint256 _randomNumber, bool _isSecureRandom, uint256 _randomTimestamp)
+    {}
 
     /**
      * Returns the historical random number for a given _votingRoundId,
@@ -54,12 +50,10 @@ contract RelayMock is IRelay {
      * @return _randomTimestamp The timestamp of the random number.
      */
     function getRandomNumberHistorical(uint256 _votingRoundId)
-        external view
-        returns (
-            uint256 _randomNumber,
-            bool _isSecureRandom,
-            uint256 _randomTimestamp
-        ) {}
+        external
+        view
+        returns (uint256 _randomNumber, bool _isSecureRandom, uint256 _randomTimestamp)
+    {}
 
     /**
      * Checks the relay message for sufficient weight of signatures for the _messageHash
@@ -70,12 +64,10 @@ contract RelayMock is IRelay {
      * @param _messageHash The hash of the message.
      * @return _rewardEpochId The reward epoch id of the signing policy.
      */
-    function verifyCustomSignature(
-        bytes calldata _relayMessage,
-        bytes32 _messageHash
-    )
+    function verifyCustomSignature(bytes calldata _relayMessage, bytes32 _messageHash)
         external
-        returns (uint256 _rewardEpochId) {}
+        returns (uint256 _rewardEpochId)
+    {}
 
     /**
      * Checks the relay message for sufficient weight of signatures of the hash of the _config data.
@@ -123,8 +115,10 @@ contract RelayMock is IRelay {
      * @return True if the verification is successful.
      */
     function verify(uint256 _protocolId, uint256 _votingRoundId, bytes32 _leaf, bytes32[] calldata _proof)
-        external payable
-        returns (bool) {}
+        external
+        payable
+        returns (bool)
+    {}
 
     /**
      * Returns the signing policy hash for given reward epoch id.
@@ -162,11 +156,10 @@ contract RelayMock is IRelay {
      * @return _startingVotingRoundIdForLastInitializedRewardEpoch Starting voting round id for it.
      */
     function lastInitializedRewardEpochData()
-        external view
-        returns (
-            uint32 _lastInitializedRewardEpoch,
-            uint32 _startingVotingRoundIdForLastInitializedRewardEpoch
-        ) {}
+        external
+        view
+        returns (uint32 _lastInitializedRewardEpoch, uint32 _startingVotingRoundIdForLastInitializedRewardEpoch)
+    {}
 
     /**
      * Returns fee collection address.
@@ -178,5 +171,4 @@ contract RelayMock is IRelay {
      * @param _protocolId The protocol id.
      */
     function protocolFeeInWei(uint256 _protocolId) external view returns (uint256) {}
-
 }

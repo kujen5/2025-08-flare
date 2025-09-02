@@ -14,7 +14,6 @@ import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol"
 import {ICoreVaultClient} from "../../userInterfaces/ICoreVaultClient.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 
-
 contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplementation, ICoreVaultClientSettings {
     using SafeCast for uint256;
 
@@ -36,9 +35,7 @@ contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplemen
         uint256 _redemptionFeeBIPS,
         uint256 _minimumAmountLeftBIPS,
         uint256 _minimumRedeemLots
-    )
-        external
-    {
+    ) external {
         updateInterfacesAtCoreVaultDeploy();
         // init settings
         require(_redemptionFeeBIPS <= SafePct.MAX_BIPS, BipsValueTooHigh());
@@ -54,9 +51,7 @@ contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplemen
         state.minimumRedeemLots = _minimumRedeemLots.toUint64();
     }
 
-    function updateInterfacesAtCoreVaultDeploy()
-        public
-    {
+    function updateInterfacesAtCoreVaultDeploy() public {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         require(ds.supportedInterfaces[type(IERC165).interfaceId], DiamondNotInitialized());
         // IAssetManager has new methods (at CoreVaultClient deploy on Songbird)
@@ -69,12 +64,7 @@ contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplemen
     ///////////////////////////////////////////////////////////////////////////////////
     // Settings
 
-    function setCoreVaultManager(
-        address _coreVaultManager
-    )
-        external
-        onlyGovernance
-    {
+    function setCoreVaultManager(address _coreVaultManager) external onlyGovernance {
         // core vault cannot be disabled once it has been enabled (it can be disabled initially
         // in initCoreVaultFacet method, for chains where core vault is not supported)
         require(_coreVaultManager != address(0), CannotDisable());
@@ -85,12 +75,7 @@ contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplemen
         emit IAssetManagerEvents.ContractChanged("coreVaultManager", _coreVaultManager);
     }
 
-    function setCoreVaultNativeAddress(
-        address payable _nativeAddress
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function setCoreVaultNativeAddress(address payable _nativeAddress) external onlyImmediateGovernance {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         state.nativeAddress = _nativeAddress;
         // not really a contract, but works for any address - event name is a bit unfortunate
@@ -98,97 +83,61 @@ contract CoreVaultClientSettingsFacet is AssetManagerBase, GovernedProxyImplemen
         emit IAssetManagerEvents.ContractChanged("coreVaultNativeAddress", _nativeAddress);
     }
 
-    function setCoreVaultTransferTimeExtensionSeconds(
-        uint256 _transferTimeExtensionSeconds
-    )
+    function setCoreVaultTransferTimeExtensionSeconds(uint256 _transferTimeExtensionSeconds)
         external
         onlyImmediateGovernance
     {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         state.transferTimeExtensionSeconds = _transferTimeExtensionSeconds.toUint64();
-        emit IAssetManagerEvents.SettingChanged("coreVaultTransferTimeExtensionSeconds",
-            _transferTimeExtensionSeconds);
+        emit IAssetManagerEvents.SettingChanged("coreVaultTransferTimeExtensionSeconds", _transferTimeExtensionSeconds);
     }
 
-    function setCoreVaultRedemptionFeeBIPS(
-        uint256 _redemptionFeeBIPS
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function setCoreVaultRedemptionFeeBIPS(uint256 _redemptionFeeBIPS) external onlyImmediateGovernance {
         require(_redemptionFeeBIPS <= SafePct.MAX_BIPS, BipsValueTooHigh());
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         state.redemptionFeeBIPS = _redemptionFeeBIPS.toUint16();
         emit IAssetManagerEvents.SettingChanged("coreVaultRedemptionFeeBIPS", _redemptionFeeBIPS);
     }
 
-    function setCoreVaultMinimumAmountLeftBIPS(
-        uint256 _minimumAmountLeftBIPS
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function setCoreVaultMinimumAmountLeftBIPS(uint256 _minimumAmountLeftBIPS) external onlyImmediateGovernance {
         require(_minimumAmountLeftBIPS <= SafePct.MAX_BIPS, BipsValueTooHigh());
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         state.minimumAmountLeftBIPS = _minimumAmountLeftBIPS.toUint16();
         emit IAssetManagerEvents.SettingChanged("coreVaultMinimumAmountLeftBIPS", _minimumAmountLeftBIPS);
     }
 
-    function setCoreVaultMinimumRedeemLots(
-        uint256 _minimumRedeemLots
-    )
-        external
-        onlyImmediateGovernance
-    {
+    function setCoreVaultMinimumRedeemLots(uint256 _minimumRedeemLots) external onlyImmediateGovernance {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         state.minimumRedeemLots = _minimumRedeemLots.toUint64();
         emit IAssetManagerEvents.SettingChanged("coreVaultMinimumRedeemLots", _minimumRedeemLots);
     }
 
-    function getCoreVaultManager()
-        external view
-        returns (address)
-    {
+    function getCoreVaultManager() external view returns (address) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return address(state.coreVaultManager);
     }
 
-    function getCoreVaultNativeAddress()
-        external view
-        returns (address)
-    {
+    function getCoreVaultNativeAddress() external view returns (address) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return state.nativeAddress;
     }
 
-    function getCoreVaultTransferTimeExtensionSeconds()
-        external view
-        returns (uint256)
-    {
+    function getCoreVaultTransferTimeExtensionSeconds() external view returns (uint256) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return state.transferTimeExtensionSeconds;
     }
 
-    function getCoreVaultRedemptionFeeBIPS()
-        external view
-        returns (uint256)
-    {
+    function getCoreVaultRedemptionFeeBIPS() external view returns (uint256) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return state.redemptionFeeBIPS;
     }
 
-    function getCoreVaultMinimumAmountLeftBIPS()
-        external view
-        returns (uint256)
-    {
+    function getCoreVaultMinimumAmountLeftBIPS() external view returns (uint256) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return state.minimumAmountLeftBIPS;
     }
 
-    function getCoreVaultMinimumRedeemLots()
-        external view
-        returns (uint256)
-    {
+    function getCoreVaultMinimumRedeemLots() external view returns (uint256) {
         CoreVaultClient.State storage state = CoreVaultClient.getState();
         return state.minimumRedeemLots;
     }

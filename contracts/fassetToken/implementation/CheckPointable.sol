@@ -8,7 +8,8 @@ import {CheckPointsByAddress} from "../library/CheckPointsByAddress.sol";
 /**
  * @title Check Pointable ERC20 Behavior
  * @notice ERC20 behavior which adds balance check point features.
- **/
+ *
+ */
 abstract contract CheckPointable is IICheckPointable {
     error CheckPointableReadingFromCleanedupBlock();
     error OnlyCleanerContract();
@@ -49,7 +50,7 @@ abstract contract CheckPointable is IICheckPointable {
         _;
     }
 
-    modifier onlyCleaner {
+    modifier onlyCleaner() {
         require(msg.sender == cleanerContract, OnlyCleanerContract());
         _;
     }
@@ -59,9 +60,12 @@ abstract contract CheckPointable is IICheckPointable {
      * @param _owner The address from which the balance will be retrieved.
      * @param _blockNumber The block number when the balance is queried.
      * @return _balance The balance at `_blockNumber`.
-     **/
+     *
+     */
     function balanceOfAt(address _owner, uint256 _blockNumber)
-        public virtual view
+        public
+        view
+        virtual
         notBeforeCleanupBlock(_blockNumber)
         returns (uint256 _balance)
     {
@@ -98,11 +102,14 @@ abstract contract CheckPointable is IICheckPointable {
      * @notice Total amount of tokens at a specific `_blockNumber`.
      * @param _blockNumber The block number when the _totalSupply is queried
      * @return _totalSupply The total amount of tokens at `_blockNumber`
-     **/
+     *
+     */
     function totalSupplyAt(uint256 _blockNumber)
-        public virtual view
+        public
+        view
+        virtual
         notBeforeCleanupBlock(_blockNumber)
-        returns(uint256 _totalSupply)
+        returns (uint256 _totalSupply)
     {
         return totalSupply.valueAt(_blockNumber);
     }

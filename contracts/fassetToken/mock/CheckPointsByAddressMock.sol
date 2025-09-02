@@ -7,7 +7,8 @@ import {CheckPointsByAddress} from "../library/CheckPointsByAddress.sol";
  * @title Check Points By Address Mock contract
  * @notice A contract to stub checkpoint history for a collection of addresses library
  *  for unit testing.
- **/
+ *
+ */
 contract CheckPointsByAddressMock {
     using CheckPointsByAddress for CheckPointsByAddress.CheckPointsByAddressState;
 

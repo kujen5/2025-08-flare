@@ -24,7 +24,6 @@ import {SafeMath64} from "../../utils/library/SafeMath64.sol";
 import {TransactionAttestation} from "../library/TransactionAttestation.sol";
 import {UnderlyingBlockUpdater} from "../library/UnderlyingBlockUpdater.sol";
 
-
 contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultClient {
     using SafePct for uint256;
     using SafeCast for uint256;
@@ -49,7 +48,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
     error ZeroTransferNotAllowed();
 
     // core vault may not be enabled on all chains
-    modifier onlyEnabled {
+    modifier onlyEnabled() {
         CoreVaultClient.checkEnabled();
         _;
     }
@@ -68,10 +67,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
      * @param _agentVault the agent vault address
      * @param _amountUBA the amount to transfer to the core vault
      */
-    function transferToCoreVault(
-        address _agentVault,
-        uint256 _amountUBA
-    )
+    function transferToCoreVault(address _agentVault, uint256 _amountUBA)
         external
         onlyEnabled
         notEmergencyPaused
@@ -101,8 +97,14 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
         // underlying transaction fee, otherwise they will go into full liquidation
         uint64 redemptionRequestId = RedemptionRequests.createRedemptionRequest(
             RedemptionRequests.AgentRedemptionData(_agentVault, transferredAMG),
-            state.nativeAddress, underlyingAddress, false, payable(address(0)), 0,
-            state.transferTimeExtensionSeconds, true);
+            state.nativeAddress,
+            underlyingAddress,
+            false,
+            payable(address(0)),
+            0,
+            state.transferTimeExtensionSeconds,
+            true
+        );
         // set the active request
         agent.activeTransferToCoreVault = redemptionRequestId;
         // send event
@@ -120,10 +122,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
      * @param _agentVault the agent vault address
      * @param _lots number of lots (same lots as for minting and redemptions)
      */
-    function requestReturnFromCoreVault(
-        address _agentVault,
-        uint256 _lots
-    )
+    function requestReturnFromCoreVault(address _agentVault, uint256 _lots)
         external
         onlyEnabled
         notEmergencyPaused
@@ -152,7 +151,8 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
         bytes32 paymentReference = PaymentReference.returnFromCoreVault(requestId);
         uint128 amountUBA = Conversion.convertAmgToUBA(amountAMG).toUint128();
         state.coreVaultManager.requestTransferFromCoreVault(
-            agent.underlyingAddressString, paymentReference, amountUBA, true);
+            agent.underlyingAddressString, paymentReference, amountUBA, true
+        );
         emit ReturnFromCoreVaultRequested(_agentVault, requestId, paymentReference, amountUBA);
     }
 
@@ -160,9 +160,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
      * Before the return request is processed, it can be cancelled, releasing the agent's reserved collateral.
      * @param _agentVault the agent vault address
      */
-    function cancelReturnFromCoreVault(
-        address _agentVault
-    )
+    function cancelReturnFromCoreVault(address _agentVault)
         external
         onlyEnabled
         nonReentrant
@@ -183,10 +181,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
      * @param _payment FDC payment proof
      * @param _agentVault the agent vault address
      */
-    function confirmReturnFromCoreVault(
-        IPayment.Proof calldata _payment,
-        address _agentVault
-    )
+    function confirmReturnFromCoreVault(IPayment.Proof calldata _payment, address _agentVault)
         external
         onlyEnabled
         nonReentrant
@@ -197,12 +192,17 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
         TransactionAttestation.verifyPaymentSuccess(_payment);
         uint64 requestId = agent.activeReturnFromCoreVaultId;
         require(requestId != 0, NoActiveReturnRequest());
-        require(_payment.data.responseBody.sourceAddressHash == state.coreVaultManager.coreVaultAddressHash(),
-            PaymentNotFromCoreVault());
-        require(_payment.data.responseBody.receivingAddressHash == agent.underlyingAddressHash,
-            PaymentNotToAgentsAddress());
-        require(_payment.data.responseBody.standardPaymentReference == PaymentReference.returnFromCoreVault(requestId),
-            InvalidPaymentReference());
+        require(
+            _payment.data.responseBody.sourceAddressHash == state.coreVaultManager.coreVaultAddressHash(),
+            PaymentNotFromCoreVault()
+        );
+        require(
+            _payment.data.responseBody.receivingAddressHash == agent.underlyingAddressHash, PaymentNotToAgentsAddress()
+        );
+        require(
+            _payment.data.responseBody.standardPaymentReference == PaymentReference.returnFromCoreVault(requestId),
+            InvalidPaymentReference()
+        );
         // make sure payment isn't used again
         AssetManagerState.get().paymentConfirmations.confirmIncomingPayment(_payment);
         // we account for the option that CV pays more or less than the reserved amount:
@@ -233,10 +233,7 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
      *      must have been added to the `allowedDestinations` list in the core vault manager by
      *      the governance before the redemption request.
      */
-    function redeemFromCoreVault(
-        uint256 _lots,
-        string memory _redeemerUnderlyingAddress
-    )
+    function redeemFromCoreVault(uint256 _lots, string memory _redeemerUnderlyingAddress)
         external
         onlyEnabled
         notEmergencyPaused
@@ -258,26 +255,28 @@ contract CoreVaultClientFacet is AssetManagerBase, ReentrancyGuard, ICoreVaultCl
         bytes32 paymentReference = PaymentReference.redemptionFromCoreVault(state.newRedemptionFromCoreVaultId);
         // transfer from core vault (paymentReference may change when the request is merged)
         paymentReference = state.coreVaultManager.requestTransferFromCoreVault(
-            _redeemerUnderlyingAddress, paymentReference, paymentUBA, false);
-        emit CoreVaultRedemptionRequested(msg.sender, _redeemerUnderlyingAddress, paymentReference,
-            redeemedUBA, redemptionFeeUBA);
+            _redeemerUnderlyingAddress, paymentReference, paymentUBA, false
+        );
+        emit CoreVaultRedemptionRequested(
+            msg.sender, _redeemerUnderlyingAddress, paymentReference, redeemedUBA, redemptionFeeUBA
+        );
     }
 
-    function maximumTransferToCoreVault(
-        address _agentVault
-    )
-        external view
+    function maximumTransferToCoreVault(address _agentVault)
+        external
+        view
         returns (uint256 _maximumTransferUBA, uint256 _minimumLeftAmountUBA)
     {
         Agent.State storage agent = Agent.get(_agentVault);
         (uint256 _maximumTransferAMG, uint256 _minimumLeftAmountAMG) =
-             CoreVaultClient.maximumTransferToCoreVaultAMG(agent);
+            CoreVaultClient.maximumTransferToCoreVaultAMG(agent);
         _maximumTransferUBA = Conversion.convertAmgToUBA(_maximumTransferAMG.toUint64());
         _minimumLeftAmountUBA = Conversion.convertAmgToUBA(_minimumLeftAmountAMG.toUint64());
     }
 
     function coreVaultAvailableAmount()
-        external view
+        external
+        view
         returns (uint256 _immediatelyAvailableUBA, uint256 _totalAvailableUBA)
     {
         return CoreVaultClient.coreVaultAvailableAmount();

@@ -25,12 +25,9 @@ library Agents {
     error OnlyAgentVaultOwner();
     error OnlyCollateralPool();
 
-
-    function getAllAgents(
-        uint256 _start,
-        uint256 _end
-    )
-        internal view
+    function getAllAgents(uint256 _start, uint256 _end)
+        internal
+        view
         returns (address[] memory _agents, uint256 _totalLength)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
@@ -43,12 +40,7 @@ library Agents {
         }
     }
 
-    function getAgentStatus(
-        Agent.State storage _agent
-    )
-        internal view
-        returns (AgentInfo.Status)
-    {
+    function getAgentStatus(Agent.State storage _agent) internal view returns (AgentInfo.Status) {
         Agent.Status status = _agent.status;
         if (status == Agent.Status.NORMAL) {
             return AgentInfo.Status.NORMAL;
@@ -59,131 +51,82 @@ library Agents {
         } else if (status == Agent.Status.DESTROYING) {
             return AgentInfo.Status.DESTROYING;
         } else {
-            assert (status == Agent.Status.DESTROYED);
+            assert(status == Agent.Status.DESTROYED);
             return AgentInfo.Status.DESTROYED;
         }
     }
 
-    function isOwner(
-        Agent.State storage _agent,
-        address _address
-    )
-        internal view
-        returns (bool)
-    {
+    function isOwner(Agent.State storage _agent, address _address) internal view returns (bool) {
         return _address == _agent.ownerManagementAddress || _address == getWorkAddress(_agent);
     }
 
-    function getWorkAddress(Agent.State storage _agent)
-        internal view
-        returns (address)
-    {
+    function getWorkAddress(Agent.State storage _agent) internal view returns (address) {
         return Globals.getAgentOwnerRegistry().getWorkAddress(_agent.ownerManagementAddress);
     }
 
-    function getOwnerPayAddress(Agent.State storage _agent)
-        internal view
-        returns (address payable)
-    {
+    function getOwnerPayAddress(Agent.State storage _agent) internal view returns (address payable) {
         address workAddress = getWorkAddress(_agent);
         return workAddress != address(0) ? payable(workAddress) : payable(_agent.ownerManagementAddress);
     }
 
-    function requireWhitelisted(
-        address _ownerManagementAddress
-    )
-        internal view
-    {
-        require(Globals.getAgentOwnerRegistry().isWhitelisted(_ownerManagementAddress),
-            AgentNotWhitelisted());
+    function requireWhitelisted(address _ownerManagementAddress) internal view {
+        require(Globals.getAgentOwnerRegistry().isWhitelisted(_ownerManagementAddress), AgentNotWhitelisted());
     }
 
-    function requireWhitelistedAgentVaultOwner(
-        Agent.State storage _agent
-    )
-        internal view
-    {
+    function requireWhitelistedAgentVaultOwner(Agent.State storage _agent) internal view {
         requireWhitelisted(_agent.ownerManagementAddress);
     }
 
-    function requireAgentVaultOwner(
-        address _agentVault
-    )
-        internal view
-    {
+    function requireAgentVaultOwner(address _agentVault) internal view {
         require(isOwner(Agent.get(_agentVault), msg.sender), OnlyAgentVaultOwner());
     }
 
-    function requireAgentVaultOwner(
-        Agent.State storage _agent
-    )
-        internal view
-    {
+    function requireAgentVaultOwner(Agent.State storage _agent) internal view {
         require(isOwner(_agent, msg.sender), OnlyAgentVaultOwner());
     }
 
-    function requireCollateralPool(
-        Agent.State storage _agent
-    )
-        internal view
-    {
+    function requireCollateralPool(Agent.State storage _agent) internal view {
         require(msg.sender == address(_agent.collateralPool), OnlyCollateralPool());
     }
 
-    function isCollateralToken(
-        Agent.State storage _agent,
-        IERC20 _token
-    )
-        internal view
-        returns (bool)
-    {
+    function isCollateralToken(Agent.State storage _agent, IERC20 _token) internal view returns (bool) {
         return _token == getPoolWNat(_agent) || _token == getVaultCollateralToken(_agent);
     }
 
-    function getVaultCollateralToken(Agent.State storage _agent)
-        internal view
-        returns (IERC20)
-    {
+    function getVaultCollateralToken(Agent.State storage _agent) internal view returns (IERC20) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.collateralTokens[_agent.vaultCollateralIndex].token;
     }
 
-    function getVaultCollateral(Agent.State storage _agent)
-        internal view
-        returns (CollateralTypeInt.Data storage)
-    {
+    function getVaultCollateral(Agent.State storage _agent) internal view returns (CollateralTypeInt.Data storage) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.collateralTokens[_agent.vaultCollateralIndex];
     }
 
     function convertUSD5ToVaultCollateralWei(Agent.State storage _agent, uint256 _amountUSD5)
-        internal view
+        internal
+        view
         returns (uint256)
     {
         return Conversion.convertFromUSD5(_amountUSD5, getVaultCollateral(_agent));
     }
 
-    function getPoolWNat(Agent.State storage _agent)
-        internal view
-        returns (IWNat)
-    {
+    function getPoolWNat(Agent.State storage _agent) internal view returns (IWNat) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return IWNat(address(state.collateralTokens[_agent.poolCollateralIndex].token));
     }
 
-    function getPoolCollateral(Agent.State storage _agent)
-        internal view
-        returns (CollateralTypeInt.Data storage)
-    {
+    function getPoolCollateral(Agent.State storage _agent) internal view returns (CollateralTypeInt.Data storage) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return state.collateralTokens[_agent.poolCollateralIndex];
     }
 
     function getCollateral(Agent.State storage _agent, Collateral.Kind _kind)
-        internal view
+        internal
+        view
         returns (CollateralTypeInt.Data storage)
     {
-        assert (_kind != Collateral.Kind.AGENT_POOL);   // there is no agent pool collateral token
+        assert(_kind != Collateral.Kind.AGENT_POOL); // there is no agent pool collateral token
         AssetManagerState.State storage state = AssetManagerState.get();
         if (_kind == Collateral.Kind.VAULT) {
             return state.collateralTokens[_agent.vaultCollateralIndex];
@@ -192,10 +135,7 @@ library Agents {
         }
     }
 
-    function collateralUnderwater(Agent.State storage _agent, Collateral.Kind _kind)
-        internal view
-        returns (bool)
-    {
+    function collateralUnderwater(Agent.State storage _agent, Collateral.Kind _kind) internal view returns (bool) {
         if (_kind == Collateral.Kind.VAULT) {
             return (_agent.collateralsUnderwater & Agent.LF_VAULT) != 0;
         } else {
@@ -207,19 +147,17 @@ library Agents {
     }
 
     function withdrawalAnnouncement(Agent.State storage _agent, Collateral.Kind _kind)
-        internal view
+        internal
+        view
         returns (Agent.WithdrawalAnnouncement storage)
     {
-        assert (_kind != Collateral.Kind.POOL);     // agent cannot withdraw from pool
+        assert(_kind != Collateral.Kind.POOL); // agent cannot withdraw from pool
         return _kind == Collateral.Kind.VAULT
             ? _agent.vaultCollateralWithdrawalAnnouncement
             : _agent.poolTokenWithdrawalAnnouncement;
     }
 
-    function totalBackedAMG(Agent.State storage _agent)
-        internal view
-        returns (uint64)
-    {
+    function totalBackedAMG(Agent.State storage _agent) internal view returns (uint64) {
         // this must always hold, so assert it is true, otherwise the following line
         // would need `max(redeemingAMG, poolRedeemingAMG)`
         assert(_agent.poolRedeemingAMG <= _agent.redeemingAMG);

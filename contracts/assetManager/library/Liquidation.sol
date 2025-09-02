@@ -14,7 +14,6 @@ import {Collateral} from "./data/Collateral.sol";
 import {CollateralTypeInt} from "./data/CollateralTypeInt.sol";
 import {CollateralTypes} from "./CollateralTypes.sol";
 
-
 library Liquidation {
     using SafeCast for uint256;
     using MathUtils for uint256;
@@ -30,14 +29,9 @@ library Liquidation {
     }
 
     // Start full agent liquidation (Agent.Status.FULL_LIQUIDATION)
-    function startFullLiquidation(
-        Agent.State storage _agent
-    )
-        internal
-    {
+    function startFullLiquidation(Agent.State storage _agent) internal {
         // if already in full liquidation or destroying, do nothing
-        if (_agent.status == Agent.Status.FULL_LIQUIDATION
-            || _agent.status == Agent.Status.DESTROYING) return;
+        if (_agent.status == Agent.Status.FULL_LIQUIDATION || _agent.status == Agent.Status.DESTROYING) return;
         if (_agent.liquidationStartedAt == 0) {
             _agent.liquidationStartedAt = block.timestamp.toUint64();
         }
@@ -46,11 +40,7 @@ library Liquidation {
     }
 
     // Cancel liquidation if the agent is healthy.
-    function endLiquidationIfHealthy(
-        Agent.State storage _agent
-    )
-        internal
-    {
+    function endLiquidationIfHealthy(Agent.State storage _agent) internal {
         // can only stop plain liquidation (full liquidation can only stop when there are no more minted assets)
         if (_agent.status != Agent.Status.LIQUIDATION) return;
         // agent's current collateral ratio
@@ -67,12 +57,7 @@ library Liquidation {
         }
     }
 
-    function getCollateralRatiosBIPS(
-        Agent.State storage _agent
-    )
-        internal view
-        returns (CRData memory)
-    {
+    function getCollateralRatiosBIPS(Agent.State storage _agent) internal view returns (CRData memory) {
         (uint256 vaultCR, uint256 amgToC1WeiPrice) = getCollateralRatioBIPS(_agent, Collateral.Kind.VAULT);
         (uint256 poolCR, uint256 amgToPoolWeiPrice) = getCollateralRatioBIPS(_agent, Collateral.Kind.POOL);
         return CRData({
@@ -86,11 +71,9 @@ library Liquidation {
     // The collateral ratio (BIPS) for deciding whether agent is in liquidation is the maximum
     // of the ratio calculated from FTSO price and the ratio calculated from trusted voters' price.
     // In this way, liquidation due to bad FTSO providers bunching together is less likely.
-    function getCollateralRatioBIPS(
-        Agent.State storage _agent,
-        Collateral.Kind _collateralKind
-    )
-        internal view
+    function getCollateralRatioBIPS(Agent.State storage _agent, Collateral.Kind _collateralKind)
+        internal
+        view
         returns (uint256 _collateralRatioBIPS, uint256 _amgToTokenWeiPrice)
     {
         (Collateral.Data memory _data, Collateral.Data memory _trustedData) =
@@ -108,10 +91,7 @@ library Liquidation {
         uint256 _collateralRatioBIPS,
         uint256 _factorBIPS,
         Collateral.Kind _collateralKind
-    )
-        internal view
-        returns (uint256)
-    {
+    ) internal view returns (uint256) {
         // for full liquidation, all minted amount can be liquidated
         if (_agent.status == Agent.Status.FULL_LIQUIDATION) {
             return _agent.mintedAMG;
@@ -119,21 +99,20 @@ library Liquidation {
         // otherwise, liquidate just enough to get agent to safety
         uint256 targetRatioBIPS = _targetRatioBIPS(_agent, _collateralKind);
         if (targetRatioBIPS <= _collateralRatioBIPS) {
-            return 0;               // agent already safe
+            return 0; // agent already safe
         }
         if (_collateralRatioBIPS <= _factorBIPS) {
             return _agent.mintedAMG; // cannot achieve target - liquidate all
         }
-        uint256 maxLiquidatedAMG = AgentCollateral.totalBackedAMG(_agent, _collateralKind)
-            .mulDivRoundUp(targetRatioBIPS - _collateralRatioBIPS, targetRatioBIPS - _factorBIPS);
+        uint256 maxLiquidatedAMG = AgentCollateral.totalBackedAMG(_agent, _collateralKind).mulDivRoundUp(
+            targetRatioBIPS - _collateralRatioBIPS, targetRatioBIPS - _factorBIPS
+        );
         return Math.min(maxLiquidatedAMG, _agent.mintedAMG);
     }
 
-    function _targetRatioBIPS(
-        Agent.State storage _agent,
-        Collateral.Kind _collateralKind
-    )
-        private view
+    function _targetRatioBIPS(Agent.State storage _agent, Collateral.Kind _collateralKind)
+        private
+        view
         returns (uint256)
     {
         CollateralTypeInt.Data storage collateral = _agent.getCollateral(_collateralKind);
@@ -145,28 +124,23 @@ library Liquidation {
     }
 
     // Used for calculating liquidation collateral ratio.
-    function _collateralDataWithTrusted(
-        Agent.State storage _agent,
-        Collateral.Kind _kind
-    )
-        private view
+    function _collateralDataWithTrusted(Agent.State storage _agent, Collateral.Kind _kind)
+        private
+        view
         returns (Collateral.Data memory _data, Collateral.Data memory _trustedData)
     {
         CollateralTypeInt.Data storage collateral = _agent.getCollateral(_kind);
         uint256 fullCollateral = _getCollateralAmount(_agent, _kind, collateral);
         (uint256 price, uint256 trusted) = Conversion.currentAmgPriceInTokenWeiWithTrusted(collateral);
-        _data = Collateral.Data({ kind: _kind, fullCollateral: fullCollateral, amgToTokenWeiPrice: price });
-        _trustedData = Collateral.Data({ kind: _kind, fullCollateral: fullCollateral, amgToTokenWeiPrice: trusted });
+        _data = Collateral.Data({kind: _kind, fullCollateral: fullCollateral, amgToTokenWeiPrice: price});
+        _trustedData = Collateral.Data({kind: _kind, fullCollateral: fullCollateral, amgToTokenWeiPrice: trusted});
     }
 
     function _getCollateralAmount(
         Agent.State storage _agent,
         Collateral.Kind _kind,
         CollateralTypeInt.Data storage collateral
-    )
-        private view
-        returns (uint256)
-    {
+    ) private view returns (uint256) {
         if (!CollateralTypes.isValid(collateral)) {
             // A simple way to force agents still holding expired collateral tokens into liquidation is just to
             // set fullCollateral for expired types to 0.

@@ -4,7 +4,6 @@ pragma solidity ^0.8.27;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {FAsset} from "./FAsset.sol";
 
-
 contract FAssetProxy is ERC1967Proxy {
     constructor(
         address _implementationAddress,
@@ -14,9 +13,9 @@ contract FAssetProxy is ERC1967Proxy {
         string memory _assetSymbol,
         uint8 _decimals
     )
-        ERC1967Proxy(_implementationAddress,
+        ERC1967Proxy(
+            _implementationAddress,
             abi.encodeCall(FAsset.initialize, (_name, _symbol, _assetName, _assetSymbol, _decimals))
         )
-    {
-    }
+    {}
 }

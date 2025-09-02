@@ -14,7 +14,6 @@ import {AgentBacking} from "./AgentBacking.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 import {PaymentReference} from "./data/PaymentReference.sol";
 
-
 library RedemptionRequests {
     using SafePct for uint256;
     using SafeCast for uint256;
@@ -42,10 +41,7 @@ library RedemptionRequests {
         uint64 _executorFeeNatGWei,
         uint64 _additionalPaymentTime,
         bool _transferToCoreVault
-    )
-        internal
-        returns (uint64 _requestId)
-    {
+    ) internal returns (uint64 _requestId) {
         require(_executorFeeNatGWei == 0 || _executor != address(0), ExecutorFeeWithoutExecutor());
         AssetManagerState.State storage state = AssetManagerState.get();
         Agent.State storage agent = Agent.get(_data.agentVault);
@@ -55,8 +51,7 @@ library RedemptionRequests {
         // both addresses must be normalized (agent's address is checked at vault creation,
         // and if redeemer address isn't normalized, the agent can trigger rejectInvalidRedemption),
         // so this comparison quarantees the redemption is not to the agent's address
-        require(underlyingAddressHash != agent.underlyingAddressHash,
-            CannotRedeemToAgentsAddress());
+        require(underlyingAddressHash != agent.underlyingAddressHash, CannotRedeemToAgentsAddress());
         // create request
         uint128 redeemedValueUBA = Conversion.convertAmgToUBA(_data.valueAMG).toUint128();
         _requestId = _newRequestId(_poolSelfClose);
@@ -68,8 +63,9 @@ library RedemptionRequests {
         (request.lastUnderlyingBlock, request.lastUnderlyingTimestamp) =
             _lastPaymentBlock(_data.agentVault, _additionalPaymentTime);
         request.timestamp = block.timestamp.toUint64();
-        request.underlyingFeeUBA = _transferToCoreVault ?
-            0 : uint256(redeemedValueUBA).mulBips(Globals.getSettings().redemptionFeeBIPS).toUint128();
+        request.underlyingFeeUBA = _transferToCoreVault
+            ? 0
+            : uint256(redeemedValueUBA).mulBips(Globals.getSettings().redemptionFeeBIPS).toUint128();
         request.redeemer = _redeemer;
         request.agentVault = _data.agentVault;
         request.valueAMG = _data.valueAMG;
@@ -92,9 +88,7 @@ library RedemptionRequests {
         Redemption.Request memory _request,
         uint64 _requestId,
         string memory _redeemerUnderlyingAddressString
-    )
-        private
-    {
+    ) private {
         emit IAssetManagerEvents.RedemptionRequested(
             _request.agentVault,
             _request.redeemer,
@@ -107,13 +101,11 @@ library RedemptionRequests {
             _request.lastUnderlyingTimestamp,
             PaymentReference.redemption(_requestId),
             _request.executor,
-            _request.executorFeeNatGWei * Conversion.GWEI);
+            _request.executorFeeNatGWei * Conversion.GWEI
+        );
     }
 
-    function _newRequestId(bool _poolSelfClose)
-        private
-        returns (uint64)
-    {
+    function _newRequestId(bool _poolSelfClose) private returns (uint64) {
         AssetManagerState.State storage state = AssetManagerState.get();
         uint64 nextRequestId = state.newRedemptionRequestId + PaymentReference.randomizedIdSkip();
         // the requestId will indicate in the lowest bit whether it is a pool self close redemption
@@ -132,11 +124,9 @@ library RedemptionRequests {
         // timeshift amortizes for the time that passed from the last underlying block update;
         // it also adds redemption time extension when there are many redemption requests in short time
         uint64 timeshift = block.timestamp.toUint64() - state.currentUnderlyingBlockUpdatedAt
-            + RedemptionTimeExtension.extendTimeForRedemption(_agentVault)
-            + _additionalPaymentTime;
+            + RedemptionTimeExtension.extendTimeForRedemption(_agentVault) + _additionalPaymentTime;
         uint64 blockshift = (uint256(timeshift) * 1000 / settings.averageBlockTimeMS).toUint64();
-        _lastUnderlyingBlock =
-            state.currentUnderlyingBlock + blockshift + settings.underlyingBlocksForPayment;
+        _lastUnderlyingBlock = state.currentUnderlyingBlock + blockshift + settings.underlyingBlocksForPayment;
         _lastUnderlyingTimestamp =
             state.currentUnderlyingBlockTimestamp + timeshift + settings.underlyingSecondsForPayment;
     }

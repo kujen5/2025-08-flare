@@ -12,18 +12,13 @@ import {Redemption} from "./data/Redemption.sol";
 import {Globals} from "./Globals.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 
-
 library Redemptions {
     using Agent for Agent.State;
     using RedemptionQueue for RedemptionQueue.State;
 
     error InvalidRequestId();
 
-    function closeTickets(
-        Agent.State storage _agent,
-        uint64 _amountAMG,
-        bool _immediatelyReleaseMinted
-    )
+    function closeTickets(Agent.State storage _agent, uint64 _amountAMG, bool _immediatelyReleaseMinted)
         internal
         returns (uint64 _closedAMG, uint256 _closedUBA)
     {
@@ -35,7 +30,7 @@ library Redemptions {
             // each loop, firstTicketId will change since we delete the first ticket
             uint64 ticketId = state.redemptionQueue.agents[_agent.vaultAddress()].firstTicketId;
             if (ticketId == 0) {
-                break;  // no more tickets for this agent
+                break; // no more tickets for this agent
             }
             RedemptionQueue.Ticket storage ticket = state.redemptionQueue.getTicket(ticketId);
             uint64 maxTicketRedeemAMG = ticket.valueAMG + _agent.dustAMG;
@@ -59,12 +54,7 @@ library Redemptions {
         _closedUBA = Conversion.convertAmgToUBA(_closedAMG);
     }
 
-    function removeFromTicket(
-        uint64 _redemptionTicketId,
-        uint64 _redeemedAMG
-    )
-        internal
-    {
+    function removeFromTicket(uint64 _redemptionTicketId, uint64 _redeemedAMG) internal {
         RedemptionQueue.State storage redemptionQueue = AssetManagerState.get().redemptionQueue;
         RedemptionQueue.Ticket storage ticket = redemptionQueue.getTicket(_redemptionTicketId);
         Agent.State storage agent = Agent.get(ticket.agentVault);
@@ -83,21 +73,12 @@ library Redemptions {
         AgentBacking.changeDust(agent, remainingAMGDust);
     }
 
-    function burnFAssets(
-        address _owner,
-        uint256 _amountUBA
-    )
-        internal
-    {
+    function burnFAssets(address _owner, uint256 _amountUBA) internal {
         Globals.getFAsset().burn(_owner, _amountUBA);
     }
 
     // pay executor for executor calls in WNat, otherwise burn executor fee
-    function payOrBurnExecutorFee(
-        Redemption.Request storage _request
-    )
-        internal
-    {
+    function payOrBurnExecutorFee(Redemption.Request storage _request) internal {
         uint256 executorFeeNatWei = _request.executorFeeNatGWei * Conversion.GWEI;
         if (executorFeeNatWei > 0) {
             _request.executorFeeNatGWei = 0;
@@ -110,11 +91,7 @@ library Redemptions {
     }
 
     // burn executor fee
-    function burnExecutorFee(
-        Redemption.Request storage _request
-    )
-        internal
-    {
+    function burnExecutorFee(Redemption.Request storage _request) internal {
         uint256 executorFeeNatWei = _request.executorFeeNatGWei * Conversion.GWEI;
         if (executorFeeNatWei > 0) {
             _request.executorFeeNatGWei = 0;
@@ -122,12 +99,7 @@ library Redemptions {
         }
     }
 
-    function reCreateRedemptionTicket(
-        Agent.State storage _agent,
-        Redemption.Request storage _request
-    )
-        internal
-    {
+    function reCreateRedemptionTicket(Agent.State storage _agent, Redemption.Request storage _request) internal {
         AgentBacking.endRedeemingAssets(_agent, _request.valueAMG, _request.poolSelfClose);
         AgentBacking.createNewMinting(_agent, _request.valueAMG);
     }
@@ -136,20 +108,13 @@ library Redemptions {
         uint256 _redemptionRequestId,
         Redemption.Request storage _request,
         Redemption.Status _status
-    )
-        internal
-    {
-        assert(_status >= Redemption.Status.SUCCESSFUL);    // must be a final status
+    ) internal {
+        assert(_status >= Redemption.Status.SUCCESSFUL); // must be a final status
         _request.status = _status;
         releaseTransferToCoreVault(_redemptionRequestId, _request);
     }
 
-    function releaseTransferToCoreVault(
-        uint256 _redemptionRequestId,
-        Redemption.Request storage _request
-    )
-        internal
-    {
+    function releaseTransferToCoreVault(uint256 _redemptionRequestId, Redemption.Request storage _request) internal {
         if (_request.transferToCoreVault) {
             Agent.State storage agent = Agent.get(_request.agentVault);
             if (agent.activeTransferToCoreVault == _redemptionRequestId) {
@@ -158,11 +123,9 @@ library Redemptions {
         }
     }
 
-    function getRedemptionRequest(
-        uint256 _redemptionRequestId,
-        bool _requireUnconfirmed
-    )
-        internal view
+    function getRedemptionRequest(uint256 _redemptionRequestId, bool _requireUnconfirmed)
+        internal
+        view
         returns (Redemption.Request storage _request)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
@@ -176,10 +139,7 @@ library Redemptions {
     }
 
     // true if redemption is valid and has not been confirmed yet
-    function isOpen(Redemption.Request storage _request)
-        internal view
-        returns (bool)
-    {
+    function isOpen(Redemption.Request storage _request) internal view returns (bool) {
         Redemption.Status status = _request.status;
         return status == Redemption.Status.ACTIVE || status == Redemption.Status.DEFAULTED;
     }

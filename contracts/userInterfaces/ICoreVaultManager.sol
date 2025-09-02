@@ -7,7 +7,6 @@ import {IPayment} from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerifi
  * Core vault manager
  */
 interface ICoreVaultManager {
-
     error InvalidAddress();
     error InvalidChain();
     error InvalidAmount();
@@ -42,11 +41,7 @@ interface ICoreVaultManager {
     }
 
     // Events
-    event PaymentConfirmed(
-        bytes32 indexed transactionId,
-        bytes32 paymentReference,
-        uint256 amount
-    );
+    event PaymentConfirmed(bytes32 indexed transactionId, bytes32 paymentReference, uint256 amount);
 
     event PaymentInstructions(
         uint256 indexed sequence,
@@ -67,82 +62,41 @@ interface ICoreVaultManager {
         uint256 cancelAfterTs
     );
 
-    event CustomInstructions(
-        uint256 indexed sequence,
-        string account,
-        bytes32 instructionsHash
-    );
+    event CustomInstructions(uint256 indexed sequence, string account, bytes32 instructionsHash);
 
-    event TransferRequested(
-        string destinationAddress,
-        bytes32 paymentReference,
-        uint256 amount,
-        bool cancelable
-    );
+    event TransferRequested(string destinationAddress, bytes32 paymentReference, uint256 amount, bool cancelable);
 
-    event TransferRequestCanceled(
-        string destinationAddress,
-        bytes32 paymentReference,
-        uint256 amount
-    );
+    event TransferRequestCanceled(string destinationAddress, bytes32 paymentReference, uint256 amount);
 
-    event EscrowExpired(
-        bytes32 indexed preimageHash,
-        uint256 amount);
+    event EscrowExpired(bytes32 indexed preimageHash, uint256 amount);
 
     event NotAllEscrowsProcessed();
 
-    event EscrowFinished(
-        bytes32 indexed preimageHash,
-        uint256 amount
-    );
+    event EscrowFinished(bytes32 indexed preimageHash, uint256 amount);
 
     event Paused();
 
     event Unpaused();
 
-    event TriggeringAccountAdded(
-        address triggeringAccount
-    );
+    event TriggeringAccountAdded(address triggeringAccount);
 
-    event TriggeringAccountRemoved(
-        address triggeringAccount
-    );
+    event TriggeringAccountRemoved(address triggeringAccount);
 
-    event AllowedDestinationAddressAdded(
-        string destinationAddress
-    );
+    event AllowedDestinationAddressAdded(string destinationAddress);
 
-    event AllowedDestinationAddressRemoved(
-        string destinationAddress
-    );
+    event AllowedDestinationAddressRemoved(string destinationAddress);
 
-    event CustodianAddressUpdated(
-        string custodianAddress
-    );
+    event CustodianAddressUpdated(string custodianAddress);
 
-    event SettingsUpdated(
-        uint256 escrowEndTimeSeconds,
-        uint256 escrowAmount,
-        uint256 minimalAmount,
-        uint256 fee
-    );
+    event SettingsUpdated(uint256 escrowEndTimeSeconds, uint256 escrowAmount, uint256 minimalAmount, uint256 fee);
 
-    event PreimageHashAdded(
-        bytes32 preimageHash
-    );
+    event PreimageHashAdded(bytes32 preimageHash);
 
-    event UnusedPreimageHashRemoved(
-        bytes32 preimageHash
-    );
+    event UnusedPreimageHashRemoved(bytes32 preimageHash);
 
-    event EmergencyPauseSenderAdded(
-        address sender
-    );
+    event EmergencyPauseSenderAdded(address sender);
 
-    event EmergencyPauseSenderRemoved(
-        address sender
-    );
+    event EmergencyPauseSenderRemoved(address sender);
 
     /**
      * Confirms payment to core vault address (increases available funds).
@@ -200,7 +154,6 @@ interface ICoreVaultManager {
      */
     function getTriggeringAccounts() external view returns (address[] memory);
 
-
     /**
      * Returns settings.
      * @return _escrowEndTimeSeconds Escrow end time in seconds.
@@ -209,13 +162,9 @@ interface ICoreVaultManager {
      * @return _fee Fee.
      */
     function getSettings()
-        external view
-        returns (
-            uint128 _escrowEndTimeSeconds,
-            uint128 _escrowAmount,
-            uint128 _minimalAmount,
-            uint128 _fee
-        );
+        external
+        view
+        returns (uint128 _escrowEndTimeSeconds, uint128 _escrowAmount, uint128 _minimalAmount, uint128 _fee);
 
     /**
      * Gets the allowed destination addresses.

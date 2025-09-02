@@ -3,9 +3,7 @@ pragma solidity >=0.7.6 <0.9;
 
 import {IGovernanceSettings} from "@flarenetwork/flare-periphery-contracts/flare/IGovernanceSettings.sol";
 
-
 interface IGoverned {
-
     error OnlyExecutor();
     error OnlyGovernance();
     error TimelockInvalidSelector();

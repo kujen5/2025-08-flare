@@ -19,26 +19,22 @@ contract CollateralPoolFactory is IICollateralPoolFactory, IERC165 {
         implementation = _implementation;
     }
 
-    function create(
-        IIAssetManager _assetManager,
-        address _agentVault,
-        AgentSettings.Data memory _settings
-    )
-        external override
+    function create(IIAssetManager _assetManager, address _agentVault, AgentSettings.Data memory _settings)
+        external
+        override
         returns (IICollateralPool)
     {
         address fAsset = address(_assetManager.fAsset());
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, new bytes(0));
         CollateralPool pool = CollateralPool(payable(address(proxy)));
-        pool.initialize(_agentVault, address(_assetManager), fAsset,
-            _settings.poolExitCollateralRatioBIPS.toUint32());
+        pool.initialize(_agentVault, address(_assetManager), fAsset, _settings.poolExitCollateralRatioBIPS.toUint32());
         return pool;
     }
 
     /**
      * Returns the encoded init call, to be used in ERC1967 upgradeToAndCall.
      */
-    function upgradeInitCall(address /* _proxy */) external pure override returns (bytes memory) {
+    function upgradeInitCall(address /* _proxy */ ) external pure override returns (bytes memory) {
         // This is the simplest upgrade implementation - no init method needed on upgrade.
         // Future versions of the factory might return a non-trivial call.
         return new bytes(0);
@@ -47,11 +43,7 @@ contract CollateralPoolFactory is IICollateralPoolFactory, IERC165 {
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        external pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IICollateralPoolFactory).interfaceId;
+    function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IICollateralPoolFactory).interfaceId;
     }
 }

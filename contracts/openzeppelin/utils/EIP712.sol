@@ -120,10 +120,7 @@ abstract contract EIP712 is IERC5267 {
     // keccak256(abi.encode(uint256(keccak256("fasset.openzeppelin.EIP712")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant EIP712_STORAGE = 0x4433daa742dbf1d9ef1ca283831944614879e423be777b51d57c60ed18a72100;
 
-    function _getEIP712State()
-        private pure
-        returns (EIP712State storage _state)
-    {
+    function _getEIP712State() private pure returns (EIP712State storage _state) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             _state.slot := EIP712_STORAGE

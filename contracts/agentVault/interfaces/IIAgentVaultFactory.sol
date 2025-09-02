@@ -5,7 +5,6 @@ import {IIAgentVault} from "./IIAgentVault.sol";
 import {IIAssetManager} from "../../assetManager/interfaces/IIAssetManager.sol";
 import {IUpgradableContractFactory} from "../../utils/interfaces/IUpgradableContractFactory.sol";
 
-
 /**
  * @title Agent vault factory
  */

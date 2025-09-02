@@ -16,7 +16,6 @@ import {IICleanable} from "@flarenetwork/flare-periphery-contracts/flare/token/i
 import {IFAsset} from "../../userInterfaces/IFAsset.sol";
 import {IICheckPointable} from "../interfaces/IICheckPointable.sol";
 
-
 contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ERC20Permit {
     error OnlyAssetManager();
     error AlreadyInitialized();
@@ -68,9 +67,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
         _;
     }
 
-    constructor()
-        ERC20("", "")
-    {
+    constructor() ERC20("", "") {
         _initialized = true;
         _version = 1000;
     }
@@ -81,9 +78,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
         string memory assetName_,
         string memory assetSymbol_,
         uint8 decimals_
-    )
-        external
-    {
+    ) external {
         require(!_initialized, AlreadyInitialized());
         _initialized = true;
         _deployer = msg.sender;
@@ -105,10 +100,8 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * Set asset manager contract this can be done only once and must be just after deploy
      * (otherwise nothing can be minted).
      */
-    function setAssetManager(address _assetManager)
-        external
-    {
-        require (msg.sender == _deployer, OnlyDeployer());
+    function setAssetManager(address _assetManager) external {
+        require(msg.sender == _deployer, OnlyDeployer());
         require(_assetManager != address(0), ZeroAssetManager());
         require(assetManager == address(0), CannotReplaceAssetManager());
         assetManager = _assetManager;
@@ -118,10 +111,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * Mints `_amount` od fAsset.
      * Only the assetManager corresponding to this fAsset may call `mint()`.
      */
-    function mint(address _owner, uint256 _amount)
-        external override
-        onlyAssetManager
-    {
+    function mint(address _owner, uint256 _amount) external override onlyAssetManager {
         _mint(_owner, _amount);
     }
 
@@ -129,10 +119,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * Burns `_amount` od fAsset.
      * Only the assetManager corresponding to this fAsset may call `burn()`.
      */
-    function burn(address _owner, uint256 _amount)
-        external override
-        onlyAssetManager
-    {
+    function burn(address _owner, uint256 _amount) external override onlyAssetManager {
         _burn(_owner, _amount);
     }
 
@@ -152,6 +139,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
     /**
      * Implements IERC20Metadata method and returns configurable number of decimals.
      */
+
     function decimals() public view virtual override(ERC20, IERC20Metadata) returns (uint8) {
         return _decimals;
     }
@@ -163,9 +151,7 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * In particular, cleanup block number must be before current vote power block.
      * @param _blockNumber The new cleanup block number.
      */
-    function setCleanupBlockNumber(uint256 _blockNumber)
-        external override
-    {
+    function setCleanupBlockNumber(uint256 _blockNumber) external override {
         require(msg.sender == cleanupBlockNumberManager, OnlyCleanupBlockManager());
         _setCleanupBlockNumber(_blockNumber);
     }
@@ -173,20 +159,14 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
     /**
      * Get the current cleanup block number.
      */
-    function cleanupBlockNumber()
-        external view override
-        returns (uint256)
-    {
+    function cleanupBlockNumber() external view override returns (uint256) {
         return _cleanupBlockNumber();
     }
 
     /**
      * Set the contract that is allowed to call history cleaning methods.
      */
-    function setCleanerContract(address _cleanerContract)
-        external override
-        onlyAssetManager
-    {
+    function setCleanerContract(address _cleanerContract) external override onlyAssetManager {
         _setCleanerContract(_cleanerContract);
     }
 
@@ -194,21 +174,18 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * Set the contract that is allowed to set cleanupBlockNumber.
      * Usually this will be an instance of CleanupBlockNumberManager.
      */
-    function setCleanupBlockNumberManager(address _cleanupBlockNumberManager)
-        external
-        onlyAssetManager
-    {
+    function setCleanupBlockNumberManager(address _cleanupBlockNumberManager) external onlyAssetManager {
         cleanupBlockNumberManager = _cleanupBlockNumberManager;
     }
 
-    function _beforeTokenTransfer(address _from, address _to, uint256 _amount)
-        internal override
-    {
+    function _beforeTokenTransfer(address _from, address _to, uint256 _amount) internal override {
         require(_from == address(0) || balanceOf(_from) >= _amount, FAssetBalanceTooLow());
         require(_from != _to, CannotTransferToSelf());
         // mint and redeem are allowed on transfer pause, but not transfer
-        require(_from == address(0) || _to == address(0) || !IAssetManager(assetManager).transfersEmergencyPaused(),
-            EmergencyPauseOfTransfersActive());
+        require(
+            _from == address(0) || _to == address(0) || !IAssetManager(assetManager).transfersEmergencyPaused(),
+            EmergencyPauseOfTransfersActive()
+        );
         // update balance history
         _updateBalanceHistoryAtTransfer(_from, _to, _amount);
     }
@@ -216,24 +193,19 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
     /**
      * Implementation of ERC-165 interface.
      */
-    function supportsInterface(bytes4 _interfaceId)
-        external pure override
-        returns (bool)
-    {
-        return _interfaceId == type(IERC165).interfaceId
-            || _interfaceId == type(IERC20).interfaceId
-            || _interfaceId == type(IERC20Metadata).interfaceId
-            || _interfaceId == type(IERC5267).interfaceId
-            || _interfaceId == type(IERC20Permit).interfaceId
-            || _interfaceId == type(IICheckPointable).interfaceId
-            || _interfaceId == type(IFAsset).interfaceId
-            || _interfaceId == type(IIFAsset).interfaceId
+    function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IERC20).interfaceId
+            || _interfaceId == type(IERC20Metadata).interfaceId || _interfaceId == type(IERC5267).interfaceId
+            || _interfaceId == type(IERC20Permit).interfaceId || _interfaceId == type(IICheckPointable).interfaceId
+            || _interfaceId == type(IFAsset).interfaceId || _interfaceId == type(IIFAsset).interfaceId
             || _interfaceId == type(IICleanable).interfaceId;
     }
 
     // support for ERC20Permit
     function _approve(address _owner, address _spender, uint256 _amount)
-        internal virtual override (ERC20, ERC20Permit)
+        internal
+        virtual
+        override(ERC20, ERC20Permit)
     {
         ERC20._approve(_owner, _spender, _amount);
     }
@@ -249,9 +221,6 @@ contract FAsset is IIFAsset, IERC165, ERC20, CheckPointable, UUPSUpgradeable, ER
      * Upgrade calls can only arrive through asset manager.
      * See UUPSUpgradeable._authorizeUpgrade.
      */
-    function _authorizeUpgrade(address /* _newImplementation */)
-        internal virtual override
-        onlyAssetManager
-    { // solhint-disable-line no-empty-blocks
+    function _authorizeUpgrade(address /* _newImplementation */ ) internal virtual override onlyAssetManager { // solhint-disable-line no-empty-blocks
     }
 }

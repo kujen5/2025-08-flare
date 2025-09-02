@@ -52,7 +52,6 @@ contract CoreVaultManagerHandler is Test {
     }
 
     function confirmPayment(uint64 _receivedAmount, bytes32 _transactionId) public {
-
         // Construct a valid IPayment.Proof
         IPayment.Proof memory proof;
         proof.data.responseBody.status = 0;
@@ -86,7 +85,7 @@ contract CoreVaultManagerHandler is Test {
         _amount = uint64(bound(_amount, 1, type(uint64).max / 2));
         string memory destination = allowedDestinations[_destIndex];
 
-        (, , , uint128 fee) = coreVaultManager.getSettings();
+        (,,, uint128 fee) = coreVaultManager.getSettings();
         uint256 totalRequestAmount = coreVaultManager.totalRequestAmountWithFee() + _amount + fee;
         if (totalRequestAmount * 2 > type(uint64).max) return;
         if (totalRequestAmount > coreVaultManager.availableFunds() + coreVaultManager.escrowedFunds()) {
@@ -100,8 +99,8 @@ contract CoreVaultManagerHandler is Test {
 
     function triggerInstructions() public {
         if (
-            coreVaultManager.getCancelableTransferRequests().length == 0 &&
-            coreVaultManager.getNonCancelableTransferRequests().length == 0
+            coreVaultManager.getCancelableTransferRequests().length == 0
+                && coreVaultManager.getNonCancelableTransferRequests().length == 0
         ) {
             vm.warp(block.timestamp + 1);
             requestTransferFromCoreVault(0, keccak256(abi.encodePacked(block.timestamp)), 1000, true);

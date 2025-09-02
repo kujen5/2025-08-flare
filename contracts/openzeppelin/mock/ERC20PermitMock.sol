@@ -14,9 +14,7 @@ contract ERC20PermitMock is ERC20, UUPSUpgradeable, ERC20Permit {
     bool private _initialized;
     uint16 private _version;
 
-    constructor(string memory name_, string memory symbol_)
-        ERC20("", "")
-    {
+    constructor(string memory name_, string memory symbol_) ERC20("", "") {
         initialize(name_, symbol_);
         initializeV1r1();
     }
@@ -48,7 +46,9 @@ contract ERC20PermitMock is ERC20, UUPSUpgradeable, ERC20Permit {
 
     // support for ERC20Permit
     function _approve(address _owner, address _spender, uint256 _amount)
-        internal virtual override (ERC20, ERC20Permit)
+        internal
+        virtual
+        override(ERC20, ERC20Permit)
     {
         ERC20._approve(_owner, _spender, _amount);
     }

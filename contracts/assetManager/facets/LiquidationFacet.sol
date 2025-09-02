@@ -19,7 +19,6 @@ import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol"
 import {AgentInfo} from "../../userInterfaces/data/AgentInfo.sol";
 import {SafePct} from "../../utils/library/SafePct.sol";
 
-
 contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
     using SafeCast for uint256;
     using SafePct for uint256;
@@ -36,9 +35,7 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
      * @param _agentVault agent vault address
      * @return _liquidationStartTs timestamp when liquidation started
      */
-    function startLiquidation(
-        address _agentVault
-    )
+    function startLiquidation(address _agentVault)
         external
         notEmergencyPaused
         nonReentrant
@@ -64,10 +61,7 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
      * @return _amountPaidVault amount paid to liquidator (in agent's vault collateral)
      * @return _amountPaidPool amount paid to liquidator (in NAT from pool)
      */
-    function liquidate(
-        address _agentVault,
-        uint256 _amountUBA
-    )
+    function liquidate(address _agentVault, uint256 _amountUBA)
         external
         notEmergencyPaused
         nonReentrant
@@ -97,8 +91,9 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
             // burn liquidated fassets
             Redemptions.burnFAssets(msg.sender, _liquidatedAmountUBA);
             // notify about liquidation
-            emit IAssetManagerEvents.LiquidationPerformed(_agentVault, msg.sender,
-                _liquidatedAmountUBA, _amountPaidVault, _amountPaidPool);
+            emit IAssetManagerEvents.LiquidationPerformed(
+                _agentVault, msg.sender, _liquidatedAmountUBA, _amountPaidVault, _amountPaidPool
+            );
         }
         // try to pull agent out of liquidation
         Liquidation.endLiquidationIfHealthy(agent);
@@ -112,12 +107,7 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
      * NOTE: anybody can call.
      * @param _agentVault agent vault address
      */
-    function endLiquidation(
-        address _agentVault
-    )
-        external
-        nonReentrant
-    {
+    function endLiquidation(address _agentVault) external nonReentrant {
         Agent.State storage agent = Agent.get(_agentVault);
         Liquidation.endLiquidationIfHealthy(agent);
         require(agent.status == Agent.Status.NORMAL, CannotStopLiquidation());
@@ -130,10 +120,7 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
      * @param _cr collateral ratios data
      * @return _inLiquidation true if agent is in liquidation
      */
-    function _startLiquidation(
-        Agent.State storage _agent,
-        Liquidation.CRData memory _cr
-    )
+    function _startLiquidation(Agent.State storage _agent, Liquidation.CRData memory _cr)
         private
         returns (bool _inLiquidation)
     {
@@ -163,11 +150,9 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
         }
     }
 
-    function _isCollateralUnderwater(
-        uint256 _collateralRatioBIPS,
-        uint256 _collateralIndex
-    )
-        private view
+    function _isCollateralUnderwater(uint256 _collateralRatioBIPS, uint256 _collateralIndex)
+        private
+        view
         returns (bool)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
@@ -175,11 +160,7 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
         return _collateralRatioBIPS < collateral.minCollateralRatioBIPS;
     }
 
-     function _performLiquidation(
-        Agent.State storage _agent,
-        Liquidation.CRData memory _cr,
-        uint64 _amountAMG
-    )
+    function _performLiquidation(Agent.State storage _agent, Liquidation.CRData memory _cr, uint64 _amountAMG)
         private
         returns (uint64 _liquidatedAMG, uint256 _payoutC1Wei, uint256 _payoutPoolWei)
     {
@@ -189,7 +170,8 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
         // calculate liquidation amount
         uint256 maxLiquidatedAMG = Math.max(
             Liquidation.maxLiquidationAmountAMG(_agent, _cr.vaultCR, vaultFactor, Collateral.Kind.VAULT),
-            Liquidation.maxLiquidationAmountAMG(_agent, _cr.poolCR, poolFactor, Collateral.Kind.POOL));
+            Liquidation.maxLiquidationAmountAMG(_agent, _cr.poolCR, poolFactor, Collateral.Kind.POOL)
+        );
         uint64 amountToLiquidateAMG = Math.min(maxLiquidatedAMG, _amountAMG).toUint64();
         // liquidate redemption tickets
         (_liquidatedAMG,) = Redemptions.closeTickets(_agent, amountToLiquidateAMG, true);
@@ -202,18 +184,13 @@ contract LiquidationFacet is AssetManagerBase, ReentrancyGuard {
 
     // Share of amount paid by pool that is the fault of the agent
     // (affects how many of the agent's pool tokens will be slashed).
-    function _agentResponsibilityWei(
-        Agent.State storage _agent,
-        uint256 _amount
-    )
-        private view
-        returns (uint256)
-    {
+    function _agentResponsibilityWei(Agent.State storage _agent, uint256 _amount) private view returns (uint256) {
         if (_agent.status == Agent.Status.FULL_LIQUIDATION || _agent.collateralsUnderwater == Agent.LF_VAULT) {
             return _amount;
         } else if (_agent.collateralsUnderwater == Agent.LF_POOL) {
             return 0;
-        } else {    // both collaterals were underwater - only half responsibility assigned to agent
+        } else {
+            // both collaterals were underwater - only half responsibility assigned to agent
             return _amount / 2;
         }
     }

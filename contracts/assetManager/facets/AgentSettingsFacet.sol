@@ -9,7 +9,6 @@ import {Globals} from "../library/Globals.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 
-
 contract AgentSettingsFacet is AssetManagerBase {
     using SafeCast for uint256;
 
@@ -32,11 +31,7 @@ contract AgentSettingsFacet is AssetManagerBase {
      * NOTE: may only be called by the agent vault owner.
      * @return _updateAllowedAt the timestamp at which the update can be executed
      */
-    function announceAgentSettingUpdate(
-        address _agentVault,
-        string memory _name,
-        uint256 _value
-    )
+    function announceAgentSettingUpdate(address _agentVault, string memory _name, uint256 _value)
         external
         onlyAgentVaultOwner(_agentVault)
         returns (uint256 _updateAllowedAt)
@@ -44,10 +39,8 @@ contract AgentSettingsFacet is AssetManagerBase {
         Agent.State storage agent = Agent.get(_agentVault);
         bytes32 hash = _getAndCheckHash(_name);
         _updateAllowedAt = block.timestamp + _getTimelock(hash);
-        agent.settingUpdates[hash] = Agent.SettingUpdate({
-            value: _value.toUint128(),
-            validAt: _updateAllowedAt.toUint64()
-        });
+        agent.settingUpdates[hash] =
+            Agent.SettingUpdate({value: _value.toUint128(), validAt: _updateAllowedAt.toUint64()});
         emit IAssetManagerEvents.AgentSettingChangeAnnounced(_agentVault, _name, _value, _updateAllowedAt);
     }
 
@@ -56,10 +49,7 @@ contract AgentSettingsFacet is AssetManagerBase {
      * This method executes a setting change after the timelock expired.
      * NOTE: may only be called by the agent vault owner.
      */
-    function executeAgentSettingUpdate(
-        address _agentVault,
-        string memory _name
-    )
+    function executeAgentSettingUpdate(address _agentVault, string memory _name)
         external
         onlyAgentVaultOwner(_agentVault)
     {
@@ -69,8 +59,9 @@ contract AgentSettingsFacet is AssetManagerBase {
         require(update.validAt != 0, NoPendingUpdate());
         require(update.validAt <= block.timestamp, UpdateNotValidYet());
         AssetManagerSettings.Data storage settings = Globals.getSettings();
-        require(update.validAt + settings.agentTimelockedOperationWindowSeconds >= block.timestamp,
-            UpdateNotValidAnymore());
+        require(
+            update.validAt + settings.agentTimelockedOperationWindowSeconds >= block.timestamp, UpdateNotValidAnymore()
+        );
         _executeUpdate(agent, hash, update.value);
         emit IAssetManagerEvents.AgentSettingChanged(_agentVault, _name, update.value);
         delete agent.settingUpdates[hash];
@@ -81,13 +72,7 @@ contract AgentSettingsFacet is AssetManagerBase {
      * This allows reading individual settings.
      * @return _value the setting value
      */
-    function getAgentSetting(
-        address _agentVault,
-        string memory _name
-    )
-        external view
-        returns (uint256 _value)
-    {
+    function getAgentSetting(address _agentVault, string memory _name) external view returns (uint256 _value) {
         Agent.State storage agent = Agent.get(_agentVault);
         bytes32 hash = _getAndCheckHash(_name);
         if (hash == FEE_BIPS) {
@@ -109,13 +94,7 @@ contract AgentSettingsFacet is AssetManagerBase {
         }
     }
 
-    function _executeUpdate(
-        Agent.State storage _agent,
-        bytes32 _hash,
-        uint256 _value
-    )
-        private
-    {
+    function _executeUpdate(Agent.State storage _agent, bytes32 _hash, uint256 _value) private {
         if (_hash == FEE_BIPS) {
             AgentUpdates.setFeeBIPS(_agent, _value);
         } else if (_hash == POOL_FEE_SHARE_BIPS) {
@@ -137,8 +116,10 @@ contract AgentSettingsFacet is AssetManagerBase {
 
     function _getTimelock(bytes32 _hash) private view returns (uint64) {
         AssetManagerSettings.Data storage settings = Globals.getSettings();
-        if (_hash == FEE_BIPS || _hash == POOL_FEE_SHARE_BIPS || _hash == REDEMPTION_POOL_FEE_SHARE_BIPS ||
-            _hash == BUY_FASSET_BY_AGENT_FACTOR_BIPS) {
+        if (
+            _hash == FEE_BIPS || _hash == POOL_FEE_SHARE_BIPS || _hash == REDEMPTION_POOL_FEE_SHARE_BIPS
+                || _hash == BUY_FASSET_BY_AGENT_FACTOR_BIPS
+        ) {
             return settings.agentFeeChangeTimelockSeconds;
         } else if (_hash == MINTING_VAULT_COLLATERAL_RATIO_BIPS || _hash == MINTING_POOL_COLLATERAL_RATIO_BIPS) {
             return settings.agentMintingCRChangeTimelockSeconds;
@@ -149,14 +130,10 @@ contract AgentSettingsFacet is AssetManagerBase {
 
     function _getAndCheckHash(string memory _name) private pure returns (bytes32) {
         bytes32 hash = keccak256(bytes(_name));
-        bool settingNameValid =
-            hash == FEE_BIPS ||
-            hash == POOL_FEE_SHARE_BIPS ||
-            hash == REDEMPTION_POOL_FEE_SHARE_BIPS ||
-            hash == MINTING_VAULT_COLLATERAL_RATIO_BIPS ||
-            hash == MINTING_POOL_COLLATERAL_RATIO_BIPS ||
-            hash == BUY_FASSET_BY_AGENT_FACTOR_BIPS ||
-            hash == POOL_EXIT_COLLATERAL_RATIO_BIPS;
+        bool settingNameValid = hash == FEE_BIPS || hash == POOL_FEE_SHARE_BIPS
+            || hash == REDEMPTION_POOL_FEE_SHARE_BIPS || hash == MINTING_VAULT_COLLATERAL_RATIO_BIPS
+            || hash == MINTING_POOL_COLLATERAL_RATIO_BIPS || hash == BUY_FASSET_BY_AGENT_FACTOR_BIPS
+            || hash == POOL_EXIT_COLLATERAL_RATIO_BIPS;
         require(settingNameValid, InvalidSettingName());
         return hash;
     }

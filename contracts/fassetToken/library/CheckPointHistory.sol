@@ -4,12 +4,12 @@ pragma solidity ^0.8.27;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-
 /**
  * @title Check Point History library
  * @notice A contract to manage checkpoints as of a given block.
  * @dev Store value history by block number with detachable state.
- **/
+ *
+ */
 library CheckPointHistory {
     using SafeCast for uint256;
 
@@ -20,7 +20,8 @@ library CheckPointHistory {
      * @dev `CheckPoint` is the structure that attaches a block number to a
      *  given value; the block number attached is the one that last changed the
      *  value
-     **/
+     *
+     */
     struct CheckPoint {
         // `value` is the amount of tokens at a specific block number
         uint192 value;
@@ -50,10 +51,7 @@ library CheckPointHistory {
         uint256 _startIndex,
         uint256 _endIndex,
         uint256 _blockNumber
-    )
-        private view
-        returns (uint256 index)
-    {
+    ) private view returns (uint256 index) {
         // Binary search of the value by given block number in the array
         uint256 min = _startIndex;
         uint256 max = _endIndex - 1;
@@ -73,12 +71,11 @@ library CheckPointHistory {
      * @param _self A CheckPointHistoryState instance to manage.
      * @param _blockNumber The block number of the value active at that time
      * @return _value The value at `_blockNumber`
-     **/
-    function valueAt(
-        CheckPointHistoryState storage _self,
-        uint256 _blockNumber
-    )
-        internal view
+     *
+     */
+    function valueAt(CheckPointHistoryState storage _self, uint256 _blockNumber)
+        internal
+        view
         returns (uint256 _value)
     {
         uint256 historyCount = _self.endIndex;
@@ -110,7 +107,8 @@ library CheckPointHistory {
      * @notice Queries the value at `block.number`
      * @param _self A CheckPointHistoryState instance to manage.
      * @return _value The value at `block.number`
-     **/
+     *
+     */
     function valueAtNow(CheckPointHistoryState storage _self) internal view returns (uint256 _value) {
         uint256 historyCount = _self.endIndex;
         // No _checkpoints, return 0
@@ -123,18 +121,13 @@ library CheckPointHistory {
      * @notice Writes the value at the current block.
      * @param _self A CheckPointHistoryState instance to manage.
      * @param _value Value to write.
-     **/
-    function writeValue(
-        CheckPointHistoryState storage _self,
-        uint256 _value
-    )
-        internal
-    {
+     *
+     */
+    function writeValue(CheckPointHistoryState storage _self, uint256 _value) internal {
         uint256 historyCount = _self.endIndex;
         if (historyCount == 0) {
             // checkpoints array empty, push new CheckPoint
-            _self.checkpoints[0] =
-                CheckPoint({ fromBlock: block.number.toUint64(), value: _toUint192(_value) });
+            _self.checkpoints[0] = CheckPoint({fromBlock: block.number.toUint64(), value: _toUint192(_value)});
             _self.endIndex = 1;
         } else {
             // historyCount - 1 is safe, since historyCount != 0
@@ -146,11 +139,11 @@ library CheckPointHistory {
                 lastCheckpoint.value = _toUint192(_value);
             } else {
                 // we should never have future blocks in history
-                assert (block.number > lastBlock);
+                assert(block.number > lastBlock);
                 // push new CheckPoint
                 _self.checkpoints[historyCount] =
-                    CheckPoint({ fromBlock: block.number.toUint64(), value: _toUint192(_value) });
-                _self.endIndex = uint64(historyCount + 1);  // 64 bit safe, because historyCount <= block.number
+                    CheckPoint({fromBlock: block.number.toUint64(), value: _toUint192(_value)});
+                _self.endIndex = uint64(historyCount + 1); // 64 bit safe, because historyCount <= block.number
             }
         }
     }
@@ -160,35 +153,32 @@ library CheckPointHistory {
      * At least one checkpoint at or before `_cleanupBlockNumber` will remain
      * (unless the history was empty to start with).
      */
-    function cleanupOldCheckpoints(
-        CheckPointHistoryState storage _self,
-        uint256 _count,
-        uint256 _cleanupBlockNumber
-    )
+    function cleanupOldCheckpoints(CheckPointHistoryState storage _self, uint256 _count, uint256 _cleanupBlockNumber)
         internal
         returns (uint256)
     {
-        if (_cleanupBlockNumber == 0) return 0;   // optimization for when cleaning is not enabled
+        if (_cleanupBlockNumber == 0) return 0; // optimization for when cleaning is not enabled
         uint256 length = _self.endIndex;
         if (length == 0) return 0;
         uint256 startIndex = _self.startIndex;
         // length - 1 is safe, since length != 0 (check above)
-        uint256 endIndex = Math.min(startIndex + _count, length - 1);    // last element can never be deleted
+        uint256 endIndex = Math.min(startIndex + _count, length - 1); // last element can never be deleted
         uint256 index = startIndex;
         // we can delete `checkpoint[index]` while the next checkpoint is at `_cleanupBlockNumber` or before
         while (index < endIndex && _self.checkpoints[index + 1].fromBlock <= _cleanupBlockNumber) {
             delete _self.checkpoints[index];
             index++;
         }
-        if (index > startIndex) {   // index is the first not deleted index
+        if (index > startIndex) {
+            // index is the first not deleted index
             _self.startIndex = index.toUint64();
         }
-        return index - startIndex;  // safe: index >= startIndex at start and then increases
+        return index - startIndex; // safe: index >= startIndex at start and then increases
     }
 
     // SafeCast lib is missing cast to uint192
     function _toUint192(uint256 _value) internal pure returns (uint192) {
-        require(_value < 2**192, ValueDoesNotFitInOneNineTwoBits());
+        require(_value < 2 ** 192, ValueDoesNotFitInOneNineTwoBits());
         return uint192(_value);
     }
 }

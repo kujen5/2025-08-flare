@@ -9,16 +9,12 @@ import {AssetManagerState} from "../library/data/AssetManagerState.sol";
 import {AssetManagerSettings} from "../../userInterfaces/data/AssetManagerSettings.sol";
 import {IAssetManagerEvents} from "../../userInterfaces/IAssetManagerEvents.sol";
 
-
 contract EmergencyPauseTransfersFacet is AssetManagerBase, IAssetManagerEvents {
     using SafeCast for uint256;
 
     error PausedByGovernance();
 
-    function emergencyPauseTransfers(bool _byGovernance, uint256 _duration)
-        external
-        onlyAssetManagerController
-    {
+    function emergencyPauseTransfers(bool _byGovernance, uint256 _duration) external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         bool pausedAtStart = _transfersPaused();
         if (_byGovernance) {
@@ -49,36 +45,31 @@ contract EmergencyPauseTransfersFacet is AssetManagerBase, IAssetManagerEvents {
         }
     }
 
-    function resetEmergencyPauseTransfersTotalDuration()
-        external
-        onlyAssetManagerController
-    {
+    function resetEmergencyPauseTransfersTotalDuration() external onlyAssetManagerController {
         AssetManagerState.State storage state = AssetManagerState.get();
         state.transfersEmergencyPausedTotalDuration = 0;
     }
 
-    function transfersEmergencyPaused()
-        external view
-        returns (bool)
-    {
+    function transfersEmergencyPaused() external view returns (bool) {
         return _transfersPaused();
     }
 
-    function transfersEmergencyPausedUntil()
-        external view
-        returns (uint256)
-    {
+    function transfersEmergencyPausedUntil() external view returns (uint256) {
         AssetManagerState.State storage state = AssetManagerState.get();
         return _transfersPaused() ? state.transfersEmergencyPausedUntil : 0;
     }
 
     function emergencyPauseTransfersDetails()
-        external view
+        external
+        view
         returns (uint256 _pausedUntil, uint256 _totalPauseDuration, bool _pausedByGovernance)
     {
         AssetManagerState.State storage state = AssetManagerState.get();
-        return (state.transfersEmergencyPausedUntil, state.transfersEmergencyPausedTotalDuration,
-            state.transfersEmergencyPausedByGovernance);
+        return (
+            state.transfersEmergencyPausedUntil,
+            state.transfersEmergencyPausedTotalDuration,
+            state.transfersEmergencyPausedByGovernance
+        );
     }
 
     function _transfersPaused() private view returns (bool) {

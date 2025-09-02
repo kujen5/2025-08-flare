@@ -14,11 +14,7 @@ interface IICollateralPool is ICollateralPool {
 
     function depositNat() external payable;
 
-    function payout(
-        address _receiver,
-        uint256 _amountWei,
-        uint256 _agentResponsibilityWei
-    ) external;
+    function payout(address _receiver, uint256 _amountWei, uint256 _agentResponsibilityWei) external;
 
     function destroy(address payable _recipient) external;
 
@@ -32,9 +28,7 @@ interface IICollateralPool is ICollateralPool {
 
     function debtFreeTokensOf(address _account) external view returns (uint256);
 
-    function debtLockedTokensOf(
-        address _account
-    ) external view returns (uint256);
+    function debtLockedTokensOf(address _account) external view returns (uint256);
 
     function assetManager() external view returns (IIAssetManager);
 }

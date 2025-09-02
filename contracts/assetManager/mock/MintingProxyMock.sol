@@ -11,20 +11,15 @@ import {IPayment} from "@flarenetwork/flare-periphery-contracts/flare/IFdcVerifi
 import {CollateralReservationInfo} from "../../userInterfaces/data/CollateralReservationInfo.sol";
 import {AgentInfo} from "../../userInterfaces/data/AgentInfo.sol";
 
-
 contract MintingProxyMock {
     using SafeERC20 for IERC20;
 
     IAssetManager private assetManager;
     address private operator;
     address private agentVault;
-    mapping (uint256 reservationId => address minter) private reservations;
+    mapping(uint256 reservationId => address minter) private reservations;
 
-    constructor(
-        IAssetManager _assetManager,
-        address _agentVault,
-        address _operator
-    ) {
+    constructor(IAssetManager _assetManager, address _agentVault, address _operator) {
         assetManager = _assetManager;
         agentVault = _agentVault;
         operator = _operator;
@@ -34,23 +29,13 @@ contract MintingProxyMock {
         // needed in case some fees get returned
     }
 
-    function reserveCollateral(
-        uint256 _lots,
-        uint256 _maxMintingFeeBIPS
-    )
-        external
-    {
-        uint256 reservationId = assetManager.reserveCollateral(agentVault, _lots, _maxMintingFeeBIPS,
-            payable(address(0)));
+    function reserveCollateral(uint256 _lots, uint256 _maxMintingFeeBIPS) external {
+        uint256 reservationId =
+            assetManager.reserveCollateral(agentVault, _lots, _maxMintingFeeBIPS, payable(address(0)));
         reservations[reservationId] = msg.sender;
     }
 
-    function executeMinting(
-        IPayment.Proof calldata _payment,
-        uint256 _collateralReservationId
-    )
-        external
-    {
+    function executeMinting(IPayment.Proof calldata _payment, uint256 _collateralReservationId) external {
         require(msg.sender == operator, "only operator");
         address minter = reservations[_collateralReservationId];
         require(minter != address(0), "invalid reservation id");
@@ -62,10 +47,7 @@ contract MintingProxyMock {
         assetManager.fAsset().safeTransfer(minter, mintedAmountUBA);
     }
 
-    function mintingFeeBIPS()
-        external view
-        returns (uint256)
-    {
+    function mintingFeeBIPS() external view returns (uint256) {
         AgentInfo.Info memory agentInfo = assetManager.getAgentInfo(agentVault);
         return agentInfo.feeBIPS;
     }
