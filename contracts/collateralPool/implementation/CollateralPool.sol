@@ -196,7 +196,19 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
         return _exitTo(_tokenShare, _recipient);
     }
 
+
     // slither-disable-next-line reentrancy-eth         // guarded by nonReentrant
+    ///@notice collateral here is wNAT
+    ///@notice steps are:
+    /**
+     * 1- check CPT shares amount
+     * 2- Check that CPT shares dont leave the CP unhealthy
+     * 3- double check that the amount of wNAT to-receive is valid
+     * 4- check that the wNAT to be withdrawn dont leave the CP unhealthy
+     * 5- update fee debt
+     * 6- burn CPT
+     * 7- withdraw wNAT to msg.sender
+     */
     function _exitTo(uint256 _tokenShare, address payable _recipient) private returns (uint256) {
         // e make sure you have shares
         require(_tokenShare > 0, TokenShareIsZero());
@@ -541,7 +553,6 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
         return Math.max(minPoolCollateralRatioBIPS, exitCollateralRatioBIPS);
     }
     ///@notice you should either withdraw all of them of leave something above the min rate
-
     function _requireMinTokenSupplyAfterExit(uint256 _tokenShare) internal view {
         uint256 totalPoolTokens = token.totalSupply();
         require(
@@ -552,7 +563,6 @@ contract CollateralPool is IICollateralPool, ReentrancyGuard, UUPSUpgradeable, I
     // ok 1st
     ///@notice make sure the pool still has NAT after your withdrawal
     ///@notice either get all NAT or leave minimum amount in vault
-
     function _requireMinNatSupplyAfterExit(uint256 _natShare) internal view {
         require(
             totalCollateral == _natShare || totalCollateral - _natShare >= MIN_NAT_BALANCE_AFTER_EXIT,
